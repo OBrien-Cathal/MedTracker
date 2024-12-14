@@ -1,7 +1,11 @@
 package com.cathalob.medtracker.service.api.impl;
 
+import com.cathalob.medtracker.dao.request.AccountVerificationRequest;
+import com.cathalob.medtracker.dao.request.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.dao.request.SignInRequest;
 import com.cathalob.medtracker.dao.request.SignUpRequest;
+import com.cathalob.medtracker.dao.response.AccountVerificationResponse;
+import com.cathalob.medtracker.dao.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.dao.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.err.UserAlreadyExistsException;
 import com.cathalob.medtracker.err.UserNotFound;
@@ -34,11 +38,7 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(USERROLE.USER).build();
         userModelRepository.save(user);
-        UserDetails userDetails = User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .roles(String.valueOf(user.getRole()))
-                .build();
+        UserDetails userDetails = getUserDetails(user);
         var jwt = jwtService.generateToken(userDetails);
         return JwtAuthenticationResponse.builder()
                 .token(jwt)
@@ -53,11 +53,7 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
                 new UsernamePasswordAuthenticationToken(username, request.getPassword()));
         var user = userModelRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFound(username));
-        UserDetails userDetails = User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .roles(String.valueOf(user.getRole()))
-                .build();
+        UserDetails userDetails = getUserDetails(user);
         var jwt = jwtService.generateToken(userDetails);
         return JwtAuthenticationResponse.builder()
                 .token(jwt)
@@ -65,4 +61,31 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
                 .build();
     }
 
+    private static UserDetails getUserDetails(UserModel user) {
+        return User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .roles(String.valueOf(user.getRole()))
+                .build();
+    }
+
+    private static UserDetails getUserDetails(String username) {
+        return User.builder()
+                .username(username).build();
+    }
+
+    public AuthenticationVerificationResponse verifyAuthentication(AuthenticationVerificationRequest request) {
+        String token = request.getToken();
+        String username = jwtService.extractUserName(token);
+        boolean tokenValid = jwtService.isTokenValid(token,
+                getUserDetails(username));
+        System.out.println("Token" + ((tokenValid) ? "VALID" : "NOT VALID") + " for User: " + username);
+        return AuthenticationVerificationResponse.builder().authenticated(tokenValid).build();
+    }
+
+    public AccountVerificationResponse checkAccountExists(AccountVerificationRequest request) {
+        boolean userExists = userModelRepository.findByUsername(request.getUsername()).isPresent();
+        System.out.println("Account " + ((userExists) ? "EXISTS" : "NOT EXISTS") + " for User: " + request.getUsername());
+        return AccountVerificationResponse.builder().accountExists(userExists).build();
+    }
 }
