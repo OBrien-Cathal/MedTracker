@@ -1,8 +1,10 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.dao.request.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.dao.request.SignInRequest;
 import com.cathalob.medtracker.dao.request.SignUpRequest;
+import com.cathalob.medtracker.dao.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.dao.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.err.UserAlreadyExistsException;
 import com.cathalob.medtracker.err.UserNotFound;
@@ -127,6 +129,48 @@ class AuthenticationControllerApiTests {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errors",
                         is(Collections.singletonList(UserNotFound.expandedMessage(signInRequest.getUsername())))));
+    }
+    @Test
+    public void givenAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedTrue()
+            throws Exception {
+        //given - precondition or setup
+        AuthenticationVerificationRequest authenticationVerificationRequest =
+                AuthenticationVerificationRequest.builder().token("aTokenString").build();
+        given(authenticationServiceApi.verifyAuthentication(any(AuthenticationVerificationRequest.class)))
+                .willReturn(AuthenticationVerificationResponse.builder().authenticated(true).build());
+
+        // when - action or the behaviour that we are going test
+        ResultActions response = mockMvc.perform(post("/api/v1/auth/verify")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(authenticationVerificationRequest)));
+
+        // then - verify the output
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated",
+                        is(true)));
+    }
+    @Test
+    public void givenExpiredAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedFalse()
+            throws Exception {
+        //given - precondition or setup
+        AuthenticationVerificationRequest authenticationVerificationRequest =
+                AuthenticationVerificationRequest.builder().token("aTokenString").build();
+        given(authenticationServiceApi.verifyAuthentication(any(AuthenticationVerificationRequest.class)))
+                .willReturn(AuthenticationVerificationResponse.builder().authenticated(false).build());
+
+        // when - action or the behaviour that we are going test
+        ResultActions response = mockMvc.perform(post("/api/v1/auth/verify")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(authenticationVerificationRequest)));
+
+        // then - verify the output
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated",
+                        is(false)));
     }
 
 }
