@@ -1,9 +1,11 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.dao.request.AccountVerificationRequest;
 import com.cathalob.medtracker.dao.request.AuthenticationVerificationRequest;
 import com.cathalob.medtracker.dao.request.SignInRequest;
 import com.cathalob.medtracker.dao.request.SignUpRequest;
+import com.cathalob.medtracker.dao.response.AccountVerificationResponse;
 import com.cathalob.medtracker.dao.response.AuthenticationVerificationResponse;
 import com.cathalob.medtracker.dao.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.err.UserAlreadyExistsException;
@@ -134,31 +136,21 @@ class AuthenticationControllerApiTests {
     public void givenAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedTrue()
             throws Exception {
         //given - precondition or setup
-        AuthenticationVerificationRequest authenticationVerificationRequest =
-                AuthenticationVerificationRequest.builder().token("aTokenString").build();
-        given(authenticationServiceApi.verifyAuthentication(any(AuthenticationVerificationRequest.class)))
-                .willReturn(AuthenticationVerificationResponse.builder().authenticated(true).build());
-
-        // when - action or the behaviour that we are going test
-        ResultActions response = mockMvc.perform(post("/api/v1/auth/verify")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(authenticationVerificationRequest)));
-
-        // then - verify the output
-        response
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.authenticated",
-                        is(true)));
+        verifyAuthenticated(true);
     }
     @Test
     public void givenExpiredAuthenticationVerificationRequest_whenVerify_thenReturnAuthenticationVerificationResponseWithAuthenticatedFalse()
             throws Exception {
         //given - precondition or setup
+        verifyAuthenticated(false);
+    }
+
+    private void verifyAuthenticated(boolean authenticated) throws Exception {
+//        given
         AuthenticationVerificationRequest authenticationVerificationRequest =
                 AuthenticationVerificationRequest.builder().token("aTokenString").build();
         given(authenticationServiceApi.verifyAuthentication(any(AuthenticationVerificationRequest.class)))
-                .willReturn(AuthenticationVerificationResponse.builder().authenticated(false).build());
+                .willReturn(AuthenticationVerificationResponse.builder().authenticated(authenticated).build());
 
         // when - action or the behaviour that we are going test
         ResultActions response = mockMvc.perform(post("/api/v1/auth/verify")
@@ -170,7 +162,39 @@ class AuthenticationControllerApiTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.authenticated",
-                        is(false)));
+                        is(authenticated)));
+    }
+
+    @Test
+    public void givenAccountVerificationRequest_whenVerify_thenReturnAccountVerificationResponseWithAccountExistsTrue()
+            throws Exception {
+        //given - precondition or setup
+        checkAccountExists(true);
+    }
+    @Test
+    public void givenAccountVerificationRequest_whenVerify_thenReturnAccountVerificationResponseWithAccountExistsFalse()
+            throws Exception {
+        //given - precondition or setup
+        checkAccountExists(false);
+    }
+
+    private void checkAccountExists(boolean accountExists) throws Exception {
+        //given
+        AccountVerificationRequest accountVerificationRequest = AccountVerificationRequest.builder().username("user@user.com").build();
+        given(authenticationServiceApi.checkAccountExists(any(AccountVerificationRequest.class)))
+                .willReturn(AccountVerificationResponse.builder().accountExists(accountExists).build());
+
+        // when - action or the behaviour that we are going test
+        ResultActions response = mockMvc.perform(post("/api/v1/auth/checkaccount")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(accountVerificationRequest)));
+
+        // then - verify the output
+        response
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountExists",
+                        is(accountExists)));
     }
 
 }
