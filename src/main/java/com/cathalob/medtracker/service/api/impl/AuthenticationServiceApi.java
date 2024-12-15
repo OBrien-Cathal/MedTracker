@@ -13,6 +13,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.service.api.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +21,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -76,10 +79,23 @@ public class AuthenticationServiceApi implements com.cathalob.medtracker.service
 
     public AuthenticationVerificationResponse verifyAuthentication(AuthenticationVerificationRequest request) {
         String token = request.getToken();
-        String username = jwtService.extractUserName(token);
-        boolean tokenValid = jwtService.isTokenValid(token,
-                getUserDetails(username));
-        System.out.println("Token" + ((tokenValid) ? "VALID" : "NOT VALID") + " for User: " + username);
+        boolean tokenValid = false;
+        try {
+            String username = jwtService.extractUserName(token);
+            Optional<UserModel> maybeUserModel = userModelRepository.findByUsername(username);
+            if (maybeUserModel.isEmpty()) {
+                return getAuthenticationVerificationResponse(tokenValid);
+            }
+            tokenValid = jwtService.isTokenValid(token,
+                    getUserDetails(maybeUserModel.get()));
+
+        } catch (ExpiredJwtException expiredJwtException) {
+            return getAuthenticationVerificationResponse(tokenValid);
+        }
+        return getAuthenticationVerificationResponse(tokenValid);
+    }
+
+    private static AuthenticationVerificationResponse getAuthenticationVerificationResponse(boolean tokenValid) {
         return AuthenticationVerificationResponse.builder().authenticated(tokenValid).build();
     }
 
