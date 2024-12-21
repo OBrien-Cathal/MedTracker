@@ -100,7 +100,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         validatedPractitionerRoleRequests(requests).forEach(request -> {
             log.info("processing req for: " + request.getUserModel().getUsername() + request.getUserModel().getId());
             if (request.isApproved()) {
-                request.getUserModel().setRole(USERROLE.PRACT);
+                request.getUserModel().setRole(USERROLE.PRACTITIONER);
             } else {
                 request.getUserModel().setRole(USERROLE.USER);
             }
@@ -140,7 +140,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
             if (!(request.getUserModel().getRole().equals(USERROLE.USER)) && request.isApproved()) {
                 throw new PractitionerRoleRequestValidationFailed("User does not have the correct role to upgrade: " + request.getUserModel().getUsername());
             }
-            if (!(request.getUserModel().getRole().equals(USERROLE.PRACT)) && !(request.isApproved())) {
+            if (!(request.getUserModel().getRole().equals(USERROLE.PRACTITIONER)) && !(request.isApproved())) {
                 throw new PractitionerRoleRequestValidationFailed("User does not have the correct role to downgrade: " + request.getUserModel().getUsername());
             }
             validated.add(request);

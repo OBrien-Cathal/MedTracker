@@ -65,7 +65,7 @@ class UserModelRepositoryTests {
         persistUserForAllRoles();
 
         // when - action or the behaviour that we are going test
-        List<UserModel> byRole = userModelRepository.findByRole(USERROLE.PRACT);
+        List<UserModel> byRole = userModelRepository.findByRole(USERROLE.PRACTITIONER);
 
         // then - verify the output
         assertThat(byRole.size()).isEqualTo(1);
@@ -87,7 +87,7 @@ class UserModelRepositoryTests {
     private void persistUserForAllRoles() {
         UserModel userModelWithRoleUSER = aUserModel().build();
         testEntityManager.persist(userModelWithRoleUSER);
-        testEntityManager.persist(aUserModel().withRole(USERROLE.PRACT).build());
+        testEntityManager.persist(aUserModel().withRole(USERROLE.PRACTITIONER).build());
         testEntityManager.persist(aUserModel().withRole(USERROLE.ADMIN).build());
     }
 

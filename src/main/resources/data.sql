@@ -6,20 +6,26 @@ NOT EXISTS (
 );
 
 INSERT INTO USERMODEL (username, password, role)
-SELECT 'doc@doc.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'PRACT'
+SELECT 'doc@doc.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'PRACTITIONER'
 WHERE
 NOT EXISTS (
     SELECT username FROM USERMODEL WHERE username = 'doc@doc.com'
 );
+INSERT INTO USERMODEL (username, password, role)
+SELECT 'user1@user.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'USER'
+WHERE
+NOT EXISTS (
+    SELECT username FROM USERMODEL WHERE username = 'user1@user.com'
+);
 
 INSERT INTO USERMODEL (username, password, role)
-SELECT 'patient1@pat.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'USER'
+SELECT 'patient1@pat.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'PATIENT'
 WHERE
 NOT EXISTS (
     SELECT username FROM USERMODEL WHERE username = 'patient1@pat.com'
 );
 INSERT INTO USERMODEL (username, password, role)
-SELECT 'patient2@pat.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'USER'
+SELECT 'patient2@pat.com', '$2a$10$WSU4n.NhUE7g1lwMAeTT9OXAaGJG2s.4UkhYIYuIcT0qn0AxNV8NO', 'PATIENT'
 WHERE
 NOT EXISTS (
     SELECT username FROM USERMODEL WHERE username = 'patient2@pat.com'
@@ -40,7 +46,7 @@ NOT EXISTS (
 );
 
 INSERT INTO PRESCRIPTION ( MEDICATION_ID, PATIENT_ID, PRACTITIONER_ID, BEGIN_TIME, END_TIME, DOSE_MG)
-SELECT '1','4', '2', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}, '15'
+SELECT '1','5', '2', {ts '2024-12-01 10:34:53'}, {ts '2024-12-01 10:34:53'}, '15'
 WHERE
 NOT EXISTS (
     SELECT PATIENT_ID FROM PRESCRIPTION WHERE PATIENT_ID = '4'
@@ -53,20 +59,20 @@ NOT EXISTS (
 );
 
 INSERT INTO DAILYEVALUATION (USERMODEL_ID, RECORD_DATE)
-SELECT '4', {ts '2024-12-01'}
+SELECT '5', {ts '2024-12-01'}
 WHERE
 NOT EXISTS (
     SELECT USERMODEL_ID FROM DAILYEVALUATION WHERE USERMODEL_ID = '4'
 );
 
 INSERT INTO DOSE (DOSE_TIME, TAKEN, dailyevaluation_record_Date,dailyevaluation_userModel_id,prescription_schedule_entry_id)
-SELECT {ts '2024-12-01 10:34:53'},'TRUE', {ts '2024-12-01'},'4','1'
+SELECT {ts '2024-12-01 10:34:53'},'TRUE', {ts '2024-12-01'},'5','1'
 WHERE
 NOT EXISTS (
     SELECT ID FROM DOSE WHERE ID = '1'
 );
 INSERT INTO BLOODPRESSUREREADING (dailyevaluation_record_Date,dailyevaluation_userModel_id, systole, diastole, heart_rate, reading_time, day_stage)
-SELECT  {ts '2024-12-01'},'4','111','77','66', {ts '2024-12-01 10:34:53'}, 'WAKEUP'
+SELECT  {ts '2024-12-01'},'5','111','77','66', {ts '2024-12-01 10:34:53'}, 'WAKEUP'
 WHERE
 NOT EXISTS (
     SELECT ID FROM BLOODPRESSUREREADING WHERE ID = '1'

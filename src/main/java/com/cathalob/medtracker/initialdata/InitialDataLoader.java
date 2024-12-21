@@ -50,7 +50,7 @@ public class InitialDataLoader implements ApplicationRunner {
         if (importCache.getMedications().containsKey(2L)) return;
         loadDbData();
 
-        importCache.setUserModel(importCache.getUserModels().get(3L));
+        importCache.setUserModel(importCache.getUserModels().get(4L));
         processMedicationExcelFile();
         processPrescriptionExcelFile();
         processPrescriptionScheduleEntriesExcelFile();

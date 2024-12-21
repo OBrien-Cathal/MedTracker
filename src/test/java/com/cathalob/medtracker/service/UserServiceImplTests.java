@@ -132,7 +132,7 @@ class UserServiceImplTests {
     public void givenListOfPractitionerRoleRequestsToApproveWithDowngrade_whenApprovePractitionerRoleRequests_thenReturnTrue() {
         //given - precondition or setup
         PractitionerRoleRequest practitionerRoleRequest = new PractitionerRoleRequest();
-        UserModel userModel = aUserModel().withId(1L).withRole(USERROLE.PRACT).build();
+        UserModel userModel = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
         practitionerRoleRequest.setUserModel(userModel);
         practitionerRoleRequest.setApproved(false);
         given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
@@ -170,7 +170,7 @@ class UserServiceImplTests {
     public void givenListOfPractitionerRoleRequestsToApproveWithInvalidUpgrade_whenApprovePractitionerRoleRequests_thenReturnTrue() {
         //given - precondition or setup
         PractitionerRoleRequest practitionerRoleRequest = new PractitionerRoleRequest();
-        UserModel userModel = aUserModel().withId(1L).withRole(USERROLE.PRACT).build();
+        UserModel userModel = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
         practitionerRoleRequest.setUserModel(userModel);
         practitionerRoleRequest.setApproved(true);
         given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));

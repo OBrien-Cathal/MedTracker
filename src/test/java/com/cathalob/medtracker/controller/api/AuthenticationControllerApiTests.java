@@ -90,8 +90,8 @@ class AuthenticationControllerApiTests {
         // then - verify the output
         response.andDo(print())
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errors",
-                        is(globallyHandledExceptionExpectedMessage(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername()),
+                .andExpect(jsonPath("$.exceptionMessage",
+                        is(apiHandledExceptionExpectedMessage(UserAlreadyExistsException.expandedMessage(signUpRequest.getUsername()),
                                 UserAlreadyExistsException.errorCode()))));
     }
 
@@ -133,8 +133,8 @@ class AuthenticationControllerApiTests {
         response
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errors",
-                        is(globallyHandledExceptionExpectedMessage(UserNotFound.expandedMessage(signInRequest.getUsername()),
+                .andExpect(jsonPath("$.exceptionMessage",
+                        is(apiHandledExceptionExpectedMessage(UserNotFound.expandedMessage(signInRequest.getUsername()),
                                 UserNotFound.errorCode()))));
     }
 
@@ -205,13 +205,10 @@ class AuthenticationControllerApiTests {
                         is(accountExists)));
     }
 
-    private List<String> globallyHandledExceptionExpectedMessage(String message, Integer code) {
-        return Collections.singletonList(ExternalException.getErrorMessageWithCode(message, code));
+    private String apiHandledExceptionExpectedMessage(String message, Integer code) {
+        return ExternalException.getErrorMessageWithCode(message, code);
 
     }
 
-    private Exception globallyHandledException(InternalException ex) {
-        return new ExternalException(ex);
 
-    }
 }

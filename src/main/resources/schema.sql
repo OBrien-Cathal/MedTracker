@@ -1,4 +1,4 @@
-create type if not exists USER_ROLE as enum('ADMIN', 'PRACT', 'USER');
+create type if not exists USER_ROLE as enum('USER', 'PATIENT', 'PRACTITIONER','ADMIN' );
 create type if not exists DAYSTAGE as enum( 'WAKEUP', 'MORNING','MIDDAY','AFTERNOON','EVENING','NIGHT','BEDTIME');
 
 create table if not exists USERMODEL (
