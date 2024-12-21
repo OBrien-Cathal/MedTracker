@@ -6,6 +6,7 @@ import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
+import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -197,14 +198,16 @@ class UserServiceImplTests {
         //given - precondition or setup
         RoleChange roleChange = aRoleChange().withId(1L).build();
         given(userModelRepository.findByUsername(roleChange.getUserModel().getUsername())).willReturn(Optional.of(userModel));
-        given(roleChangeRepository.save(roleChange)).willReturn(roleChange);
+        given(roleChangeRepository.save(any(RoleChange.class))).willReturn(roleChange);
 
         // when - action or the behaviour that we are going test
-        RoleChange submittedRoleChange = userService.submitRoleChange(roleChange, userModel.getUsername());
+        String roleName = roleChange.getNewRole().toString();
+        GenericRequestResponse genericRequestResponse = userService.submitRoleChange(roleName, userModel.getUsername());
         // then - verify the output
-        assertThat(submittedRoleChange.getUserModel()).isEqualTo(userModel);
-        verify(roleChangeRepository, times(1)).save(roleChange);
+        assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
+        verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
     }
+
 
     @DisplayName("Failed password change request - unimplemented")
     @Test

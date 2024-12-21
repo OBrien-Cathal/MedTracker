@@ -8,6 +8,7 @@ import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
+import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +55,21 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     //    NEW ROLE functions
-    public RoleChange submitRoleChange(RoleChange roleChange, String submitterUserName) {
+    public GenericRequestResponse submitRoleChange(String newRoleName, String submitterUserName) {
         UserModel subbmiterUserModel = findByLogin(submitterUserName);
-        if (subbmiterUserModel == null) return roleChange;
+        if (subbmiterUserModel == null) return new GenericRequestResponse(false, "failed");
+
+        USERROLE newUserrole = USERROLE.valueOf(newRoleName);
+        RoleChange roleChange = new RoleChange();
+        roleChange.setNewRole(newUserrole);
         roleChange.setUserModel(subbmiterUserModel);
+        roleChange.setOldRole(subbmiterUserModel.getRole());
+        roleChange.setRequestTime(LocalDateTime.now());
+        RoleChange savedRoleChange = submitRoleChange(roleChange);
+        return new GenericRequestResponse(true, "Request pending with ID: " + savedRoleChange.getId());
+    }
+
+    private RoleChange submitRoleChange(RoleChange roleChange) {
         return roleChangeRepository.save(roleChange);
     }
 

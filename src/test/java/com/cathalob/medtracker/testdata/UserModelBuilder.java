@@ -1,7 +1,5 @@
 package com.cathalob.medtracker.testdata;
 
-import com.cathalob.medtracker.dto.UserModelDTO;
-import com.cathalob.medtracker.mapper.UserModelMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 
@@ -9,7 +7,7 @@ public class UserModelBuilder {
 
     private Long id;
 
-    private String username = "username";
+    private String username = "user@user.com";
     private USERROLE role = USERROLE.USER;
     private String password = "abc";
     public UserModelBuilder withId(Long id) {
