@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -27,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(SecurityConfig.class)
-@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = AdminControllerApi.class)
 class AdminControllerApiTests {
     @MockBean
@@ -42,6 +42,7 @@ class AdminControllerApiTests {
     private CustomUserDetailsService customUserDetailsService;
 
     @Test
+    @WithMockUser("user@user.com")
     public void givenGetUserModelsRequest_when_then() throws Exception {
         //given - precondition or setup
         List<UserModel> users = List.of(aUserModel().withId(1L).build(), aUserModel().withId(2L).build());

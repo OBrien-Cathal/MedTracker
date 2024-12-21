@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(SecurityConfig.class)
-//@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = UserControllerApi.class)
 class UserControllerApiTests {
     @MockBean
