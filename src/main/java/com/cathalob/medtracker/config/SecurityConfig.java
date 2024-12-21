@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.config;
 
+import com.cathalob.medtracker.config.api.JwtAuthenticationFilter;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

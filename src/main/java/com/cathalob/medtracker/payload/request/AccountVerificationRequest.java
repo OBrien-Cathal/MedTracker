@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.dao.request;
+package com.cathalob.medtracker.payload.request;
 
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignUpRequest {
+public class AccountVerificationRequest {
     @Email(message = "Invalid email")
     private String username;
-    private String password;
 }

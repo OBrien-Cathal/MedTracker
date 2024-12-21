@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.exception;
+package com.cathalob.medtracker.exception.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

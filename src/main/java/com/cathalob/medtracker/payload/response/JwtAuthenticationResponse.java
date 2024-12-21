@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.dao.response;
+package com.cathalob.medtracker.payload.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

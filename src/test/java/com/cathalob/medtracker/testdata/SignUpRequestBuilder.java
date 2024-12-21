@@ -1,6 +1,6 @@
 package com.cathalob.medtracker.testdata;
 
-import com.cathalob.medtracker.dao.request.SignUpRequest;
+import com.cathalob.medtracker.payload.request.SignUpRequest;
 
 public class SignUpRequestBuilder extends AuthenticationRequestBuilder {
     public SignUpRequest build() {

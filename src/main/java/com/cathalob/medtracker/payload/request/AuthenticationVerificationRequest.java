@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.dao.request;
+package com.cathalob.medtracker.payload.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

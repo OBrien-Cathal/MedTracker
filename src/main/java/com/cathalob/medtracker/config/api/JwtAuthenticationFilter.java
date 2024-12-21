@@ -1,4 +1,4 @@
-package com.cathalob.medtracker.config;
+package com.cathalob.medtracker.config.api;
 
 import com.cathalob.medtracker.service.api.JwtService;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;

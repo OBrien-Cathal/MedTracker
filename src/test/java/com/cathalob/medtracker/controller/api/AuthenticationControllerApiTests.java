@@ -1,15 +1,14 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
-import com.cathalob.medtracker.dao.request.AccountVerificationRequest;
-import com.cathalob.medtracker.dao.request.AuthenticationVerificationRequest;
-import com.cathalob.medtracker.dao.request.SignInRequest;
-import com.cathalob.medtracker.dao.request.SignUpRequest;
-import com.cathalob.medtracker.dao.response.AccountVerificationResponse;
-import com.cathalob.medtracker.dao.response.AuthenticationVerificationResponse;
-import com.cathalob.medtracker.dao.response.JwtAuthenticationResponse;
+import com.cathalob.medtracker.payload.request.AccountVerificationRequest;
+import com.cathalob.medtracker.payload.request.AuthenticationVerificationRequest;
+import com.cathalob.medtracker.payload.request.SignInRequest;
+import com.cathalob.medtracker.payload.request.SignUpRequest;
+import com.cathalob.medtracker.payload.response.AccountVerificationResponse;
+import com.cathalob.medtracker.payload.response.AuthenticationVerificationResponse;
+import com.cathalob.medtracker.payload.response.JwtAuthenticationResponse;
 import com.cathalob.medtracker.exception.ExternalException;
-import com.cathalob.medtracker.exception.InternalException;
 import com.cathalob.medtracker.exception.UserAlreadyExistsException;
 import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
@@ -25,9 +24,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.util.Collections;
-import java.util.List;
 
 import static com.cathalob.medtracker.testdata.SignUpRequestBuilder.aSignUpRequest;
 import static org.hamcrest.CoreMatchers.is;
