@@ -6,7 +6,6 @@ import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
@@ -15,10 +14,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
 
 import java.util.List;
 
@@ -30,8 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import(SecurityConfig.class)
 @AutoConfigureMockMvc(addFilters = false)
-@WebMvcTest(controllers = UserControllerApi.class)
-class UserControllerApiTests {
+@WebMvcTest(controllers = AdminControllerApi.class)
+class AdminControllerApiTests {
     @MockBean
     private UserService userService;
     @Autowired
@@ -43,21 +41,21 @@ class UserControllerApiTests {
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 
-//    @Test
-//    public void givenGetUserModelsRequest_when_then() throws Exception {
-//        //given - precondition or setup
-//        List<UserModel> users = List.of(aUserModel().withId(1L).build(), aUserModel().withId(2L).build());
-//
-//        BDDMockito.given(userService.getUserModels()).willReturn(users);
-//        // when - action or the behaviour that we are going test
-//        ResultActions usersResponse = mockMvc.perform(get("/api/v1/users"));
-//
-//        // then - verify the output
-//        usersResponse
-//                .andDo(print())
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$").isArray())
-//                .andExpect(jsonPath("$", Matchers.hasSize(2)));
-//    }
+    @Test
+    public void givenGetUserModelsRequest_when_then() throws Exception {
+        //given - precondition or setup
+        List<UserModel> users = List.of(aUserModel().withId(1L).build(), aUserModel().withId(2L).build());
+
+        BDDMockito.given(userService.getUserModels()).willReturn(users);
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(get("/api/v1/admin/users"));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", Matchers.hasSize(2)));
+    }
 
 }
