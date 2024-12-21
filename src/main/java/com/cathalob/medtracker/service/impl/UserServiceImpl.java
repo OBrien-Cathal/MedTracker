@@ -7,7 +7,9 @@ import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
+import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +21,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class UserServiceImpl implements com.cathalob.medtracker.service.UserService {
     private final UserModelRepository userModelRepository;
     private final PractitionerRoleRequestRepository practitionerRoleRequestRepository;
+    private final RoleChangeRepository roleChangeRepository;
 
     @Override
     public UserModel findByLogin(String username) throws UserNotFound {
@@ -46,6 +50,14 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     public Map<Long, UserModel> getUserModelsById() {
         return getUserModels()
                 .stream().collect(Collectors.toMap(UserModel::getId, Function.identity()));
+    }
+
+    //    NEW ROLE functions
+    public RoleChange submitRoleChange(RoleChange roleChange, String submitterUserName) {
+        UserModel subbmiterUserModel = findByLogin(submitterUserName);
+        if (subbmiterUserModel == null) return roleChange;
+        roleChange.setUserModel(subbmiterUserModel);
+        return roleChangeRepository.save(roleChange);
     }
 
     //    USER Role functions

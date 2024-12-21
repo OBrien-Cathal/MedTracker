@@ -5,9 +5,12 @@ import com.cathalob.medtracker.exception.UserNotFound;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
+import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
+import com.cathalob.medtracker.testdata.RoleChangeBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static com.cathalob.medtracker.testdata.RoleChangeBuilder.aRoleChange;
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,6 +36,8 @@ class UserServiceImplTests {
     private UserModelRepository userModelRepository;
     @Mock
     private PractitionerRoleRequestRepository practitionerRoleRequestRepository;
+    @Mock
+    private RoleChangeRepository roleChangeRepository;
     @InjectMocks
     private UserServiceImpl userService;
     private UserModel userModel;
@@ -186,6 +192,19 @@ class UserServiceImplTests {
         verify(practitionerRoleRequestRepository, never()).delete(any(PractitionerRoleRequest.class));
     }
 
+    @Test
+    public void givenRoleChange_whenSubmitRoleChange_thenReturnSavedRoleChange() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        given(userModelRepository.findByUsername(roleChange.getUserModel().getUsername())).willReturn(Optional.of(userModel));
+        given(roleChangeRepository.save(roleChange)).willReturn(roleChange);
+
+        // when - action or the behaviour that we are going test
+        RoleChange submittedRoleChange = userService.submitRoleChange(roleChange, userModel.getUsername());
+        // then - verify the output
+        assertThat(submittedRoleChange.getUserModel()).isEqualTo(userModel);
+        verify(roleChangeRepository, times(1)).save(roleChange);
+    }
 
     @DisplayName("Failed password change request - unimplemented")
     @Test
