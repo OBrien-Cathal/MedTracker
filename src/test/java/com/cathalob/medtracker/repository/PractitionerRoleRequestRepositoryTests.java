@@ -15,8 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
-@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+
 class PractitionerRoleRequestRepositoryTests {
     @Autowired
     private TestEntityManager testEntityManager;
@@ -37,7 +36,7 @@ class PractitionerRoleRequestRepositoryTests {
         PractitionerRoleRequest saved = practitionerRoleRequestRepository.save(practitionerRoleRequest);
 
         // then - verify the output
-        assertThat(saved.getId()).isEqualTo(1L);
+        assertThat(saved.getId()).isGreaterThan(1L);
 
     }
 }

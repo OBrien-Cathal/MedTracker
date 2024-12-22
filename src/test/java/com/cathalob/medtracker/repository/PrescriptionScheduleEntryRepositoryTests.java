@@ -14,8 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
-@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+
 class PrescriptionScheduleEntryRepositoryTests {
     @Autowired
     private PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;

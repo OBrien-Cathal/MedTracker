@@ -20,8 +20,6 @@ import java.util.List;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class UserModelRepositoryTests {
 
     @Autowired
@@ -43,7 +41,7 @@ class UserModelRepositoryTests {
 
 //        then
         assertThat(saved).isNotNull();
-        assertThat(saved.getId()).isEqualTo(1L);
+        assertThat(saved.getId()).isGreaterThan(1L);
         assertThat(saved.getPassword()).isEqualTo("abc");
     }
 

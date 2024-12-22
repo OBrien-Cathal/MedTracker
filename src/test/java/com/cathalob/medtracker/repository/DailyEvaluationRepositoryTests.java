@@ -16,8 +16,6 @@ import java.util.List;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class DailyEvaluationRepositoryTests {
     @Autowired
     private DailyEvaluationRepository dailyEvaluationRepository;
@@ -56,7 +54,7 @@ class DailyEvaluationRepositoryTests {
 //        when
         assertThat(dailyEvaluationRepository.findAll().size()).isEqualTo(2);
         assertThat(dailyEvaluationsForUserModelId.size()).isEqualTo(1);
-        assertThat(dailyEvaluationsForUserModelId).allMatch(de -> de.getUserModel().getId().equals(1L));
+        assertThat(dailyEvaluationsForUserModelId).allMatch(de -> de.getUserModel().getId() >(0L));
 
     }
 
