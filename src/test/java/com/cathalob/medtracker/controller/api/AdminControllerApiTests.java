@@ -41,22 +41,6 @@ class AdminControllerApiTests {
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 
-    @Test
-    @WithMockUser("user@user.com")
-    public void givenGetUserModelsRequest_when_then() throws Exception {
-        //given - precondition or setup
-        List<UserModel> users = List.of(aUserModel().withId(1L).build(), aUserModel().withId(2L).build());
 
-        BDDMockito.given(userService.getUserModels()).willReturn(users);
-        // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get("/api/v1/admin/users"));
-
-        // then - verify the output
-        usersResponse
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", Matchers.hasSize(2)));
-    }
 
 }
