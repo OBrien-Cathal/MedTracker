@@ -15,7 +15,7 @@ public interface RoleChangeRepository extends JpaRepository<RoleChange, Long> {
             @Param("newRole") USERROLE newRole);
 
 
-    List<RoleChange> findByUserModelIdAndNewRole(Long userModelId, USERROLE newRole);
+    List<RoleChange> findByUserModelIdAndNewRoleAndApprovedById(Long userModelId, USERROLE newRole, Long approvedBy);
     List<RoleChange> findByApprovedById(Long approvedBy);
 
 }

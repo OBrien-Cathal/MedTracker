@@ -5,10 +5,7 @@ import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -125,6 +122,47 @@ class RoleChangeRepositoryTests {
         assertThat(unapprovedRoleChanges.size()).isEqualTo(1);
         assertThat(unapprovedRoleChanges).allMatch(roleChange1 -> roleChange1.getApprovedBy() == null);
         assertThat(unapprovedRoleChanges).allMatch(roleChange1 -> roleChange1.getUserModel().getUsername().equals(unapprovedRoleChangeUser));
+
+    }
+
+    @DisplayName("Test retrieval of unapproved role requests for specific user and role ")
+    @Test
+    public void givenPersistedUnapprovedRoleChanges_whenFindByUserModelIdAndNewRoleAndApprovedById_thenReturnOnlyUnapprovedRoleChangesForUser() {
+        //given - precondition or setup
+        RoleChange practitionerRoleChange = aRoleChange().build();
+        String otherRoleChangeUser = "other";
+        RoleChange otherUserRoleChange = aRoleChange()
+                .withUserModelBuilder(UserModelBuilder.aUserModel().withUsername(otherRoleChangeUser))
+                .build();
+        RoleChange adminRoleChange = aRoleChange().withNewRole(USERROLE.ADMIN).build();
+
+        UserModel roleChangeUserModel = practitionerRoleChange.getUserModel();
+        adminRoleChange.setUserModel(roleChangeUserModel);
+
+        testEntityManager.persist(roleChangeUserModel);
+        testEntityManager.persist(otherUserRoleChange.getUserModel());
+
+        UserModel approvedBy = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+        testEntityManager.persist(approvedBy);
+
+
+//        practitionerRoleChange.setApprovedBy(approvedBy);
+//        practitionerRoleChange.setApprovalTime(LocalDateTime.now());
+        testEntityManager.persist(practitionerRoleChange);
+        testEntityManager.persist(adminRoleChange);
+
+//        otherUserRoleChange.setApprovedBy(approvedBy);
+//        otherUserRoleChange.setApprovalTime(LocalDateTime.now());
+        testEntityManager.persist(otherUserRoleChange);
+        System.out.println(otherUserRoleChange.getUserModel().getUsername());
+        testEntityManager.flush();
+        // when - action or the behaviour that we are going test
+        List<RoleChange> unapprovedRoleChangesToPractitioner = roleChangeRepository.findByUserModelIdAndNewRoleAndApprovedById(roleChangeUserModel.getId(),USERROLE.PRACTITIONER, null);
+        // then - verify the output
+        assertThat(unapprovedRoleChangesToPractitioner.size()).isEqualTo(1);
+        assertThat(unapprovedRoleChangesToPractitioner).allMatch(roleChange1 -> roleChange1.getApprovedBy() == null);
+        assertThat(unapprovedRoleChangesToPractitioner).allMatch(roleChange1 -> roleChange1.getNewRole() == USERROLE.PRACTITIONER);
+        assertThat(unapprovedRoleChangesToPractitioner).allMatch(roleChange1 -> roleChange1.getUserModel().getUsername().equals(roleChangeUserModel.getUsername()));
 
     }
 
