@@ -8,6 +8,7 @@ import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -56,5 +57,23 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$.requestSucceeded", CoreMatchers.is(genericRequestResponse.isRequestSucceeded())))
                 .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
     }
+    @Disabled("Ensure role name is a real one")
+      @Test
+          public void givenBogusRoleName_when_then(){
+              //given - precondition or setup
+
+              // when - action or the behaviour that we are going test
+
+              // then - verify the output
+          }
+    @Disabled("Prevent many role changes for same user, for the same type of role")
+      @Test
+          public void givenMultipleRoleChangeRequests_when_then(){
+              //given - precondition or setup
+
+              // when - action or the behaviour that we are going test
+
+              // then - verify the output
+          }
 
 }
