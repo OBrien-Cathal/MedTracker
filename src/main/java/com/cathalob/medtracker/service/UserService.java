@@ -21,7 +21,7 @@ public interface UserService {
     //  USER Role functions
     GenericRequestResponse submitRoleChange(String newRoleName, String submitterUserName);
 
-    GenericRequestResponse approveRoleChange(Long roleChangeUserId, USERROLE newRole, String approvedByUserName);
+    GenericRequestResponse approveRoleChange(Long roleChangeId, String approvedByUserName);
 
     boolean submitPractitionerRoleRequest(String username);
 

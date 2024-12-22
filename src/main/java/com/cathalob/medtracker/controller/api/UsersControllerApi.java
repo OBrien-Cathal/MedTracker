@@ -34,8 +34,7 @@ public class UsersControllerApi {
     public ResponseEntity<GenericRequestResponse> approveRoleChange(
             @RequestBody RoleChangeApprovalRequest approvalRequest,
             Authentication authentication) {
-        GenericRequestResponse requestResponse = userService.approveRoleChange(approvalRequest.getUserModelId(),
-                approvalRequest.getNewRole(),
+        GenericRequestResponse requestResponse = userService.approveRoleChange(approvalRequest.getRoleChangeRequestId(),
                 authentication.getName());
         return ResponseEntity.ok(requestResponse);
     }

@@ -11,7 +11,6 @@ import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
-import com.cathalob.medtracker.testdata.RoleChangeBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -205,6 +204,28 @@ class UserServiceImplTests {
         GenericRequestResponse genericRequestResponse = userService.submitRoleChange(roleName, userModel.getUsername());
         // then - verify the output
         assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
+        verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
+    }
+
+    @Test
+    public void givenExistingRoleChange_whenApproveRoleChange_thenReturnSuccessfulResponse() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        roleChange.setUserModel(userModel);
+        UserModel approvedBy = aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+        given(userModelRepository.findByUsername(approvedBy.getUsername())).willReturn(Optional.of(approvedBy));
+//        given(userModelRepository.findById(userModel.getId())).willReturn(Optional.of(userModel));
+        given(roleChangeRepository.findById(roleChange.getId()))
+                .willReturn(Optional.of(roleChange));
+
+        given(roleChangeRepository.save(roleChange)).willReturn(roleChange);
+        GenericRequestResponse expectedResponse = new GenericRequestResponse(true);
+        // when - action or the behaviour that we are going test
+        GenericRequestResponse genericRequestResponse = userService.approveRoleChange(roleChange.getId(), approvedBy.getUsername());
+        // then - verify the output
+        assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
+        assertThat(genericRequestResponse.getMessage()).isEqualTo(expectedResponse.getMessage());
+        assertThat(genericRequestResponse.getErrors()).size().isEqualTo(0);
         verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
     }
 

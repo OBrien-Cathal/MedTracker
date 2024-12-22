@@ -58,7 +58,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     @Override
     public GenericRequestResponse submitRoleChange(String newRoleName, String submitterUserName) {
         UserModel subbmiterUserModel = findByLogin(submitterUserName);
-        if (subbmiterUserModel == null) return new GenericRequestResponse(false, "failed");
+        if (subbmiterUserModel == null) return new GenericRequestResponse(false);
 
         USERROLE newUserrole = USERROLE.valueOf(newRoleName);
         RoleChange roleChange = new RoleChange();
@@ -71,14 +71,47 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
-    public GenericRequestResponse approveRoleChange(Long roleChangeUserId, USERROLE newRole, String approvedByUserName){
+    public GenericRequestResponse approveRoleChange(Long roleChangeId, String approvedByUserName) {
+
         UserModel approvedBy = findByLogin(approvedByUserName);
-        if (approvedBy== null || approvedBy.getRole() !=USERROLE.ADMIN) return new GenericRequestResponse(false, "failed");
-        List<RoleChange> unapprovedRoleChanges = roleChangeRepository.findUnapprovedRoleChange(roleChangeUserId, newRole);
+//    replace line below when adding method security
+        GenericRequestResponse response = new GenericRequestResponse(false);
+        if (approvedBy == null || approvedBy.getRole() != USERROLE.ADMIN) {
+            response.setMessage("insufficient privileges");
+            return response;
+        }
+        Optional<RoleChange> maybeRoleChange = roleChangeRepository.findById(roleChangeId);
+        if (maybeRoleChange.isEmpty()) return response;
 
+        RoleChange roleChange = maybeRoleChange.get();
 
-        return new GenericRequestResponse(true, "success");
+        List<String> errors = validateRoleChangeApproval(roleChange);
+        if (!errors.isEmpty()){
+            response.setMessage("Validation Failed");
+            response.setErrors(errors);
+            return response;
+        }
+        roleChange.setApprovedBy(approvedBy);
+        roleChange.setApprovalTime(LocalDateTime.now());
+        roleChangeRepository.save(roleChange);
+        return response.success();
+    }
 
+    private List<String> validateRoleChangeApproval(RoleChange roleChange) {
+        ArrayList<String> errors = new ArrayList<>();
+        if (roleChange.getApprovedBy() != null)
+            errors.add(String.format(
+                    "Role change with Id: %s was already approved by: %s at: %s",
+                    roleChange.getId(),
+                    roleChange.getApprovedBy().getUsername(),
+                    roleChange.getApprovalTime().toString()));
+        if (roleChange.getUserModel().getRole() != USERROLE.USER) {
+            errors.add(String.format("User Role: %s is not a candidate for role change to: %s",
+                    roleChange.getUserModel().getRole().name(),
+                    roleChange.getNewRole()));
+        }
+
+        return errors;
     }
 
     private RoleChange submitRoleChange(RoleChange roleChange) {

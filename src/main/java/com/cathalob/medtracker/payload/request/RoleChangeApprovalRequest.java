@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleChangeApprovalRequest {
-    private Long userModelId;
-    private USERROLE newRole;
+    private Long roleChangeRequestId;
+
 }
