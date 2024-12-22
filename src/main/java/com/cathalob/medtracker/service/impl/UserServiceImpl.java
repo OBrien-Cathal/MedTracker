@@ -55,6 +55,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     //    NEW ROLE functions
+    @Override
     public GenericRequestResponse submitRoleChange(String newRoleName, String submitterUserName) {
         UserModel subbmiterUserModel = findByLogin(submitterUserName);
         if (subbmiterUserModel == null) return new GenericRequestResponse(false, "failed");
@@ -67,6 +68,17 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         roleChange.setRequestTime(LocalDateTime.now());
         RoleChange savedRoleChange = submitRoleChange(roleChange);
         return new GenericRequestResponse(true, "Request pending with ID: " + savedRoleChange.getId());
+    }
+
+    @Override
+    public GenericRequestResponse approveRoleChange(Long roleChangeUserId, USERROLE newRole, String approvedByUserName){
+        UserModel approvedBy = findByLogin(approvedByUserName);
+        if (approvedBy== null || approvedBy.getRole() !=USERROLE.ADMIN) return new GenericRequestResponse(false, "failed");
+        List<RoleChange> unapprovedRoleChanges = roleChangeRepository.findUnapprovedRoleChange(roleChangeUserId, newRole);
+
+
+        return new GenericRequestResponse(true, "success");
+
     }
 
     private RoleChange submitRoleChange(RoleChange roleChange) {

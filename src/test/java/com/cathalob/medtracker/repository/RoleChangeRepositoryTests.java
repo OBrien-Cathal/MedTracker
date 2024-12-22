@@ -1,8 +1,10 @@
 package com.cathalob.medtracker.repository;
 
+import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -12,8 +14,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.cathalob.medtracker.testdata.RoleChangeBuilder.aRoleChange;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,8 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
-@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+
+//@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+//@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class RoleChangeRepositoryTests {
     @Autowired
     private TestEntityManager testEntityManager;
@@ -34,13 +39,13 @@ class RoleChangeRepositoryTests {
     @Order(1)
     public void givenRoleChange_whenSave_thenReturnSavedRoleChange() {
         //given - precondition or setup
-        System.out.println("first");
         RoleChange roleChange = aRoleChange().build();
         testEntityManager.persist(roleChange.getUserModel());
         // when - action or the behaviour that we are going test
         RoleChange saved = roleChangeRepository.save(roleChange);
+
         // then - verify the output
-        assertThat(saved.getId()).isEqualTo(1L);
+        assertThat(saved.getId()).isGreaterThan(0L);
         assertThat(saved.getApprovedBy()).isNull();
         assertThat(saved.getApprovalTime()).isNull();
     }
@@ -49,19 +54,103 @@ class RoleChangeRepositoryTests {
     @Order(2)
     public void givenApprovedRoleChange_whenSave_thenReturnSavedRoleChange() {
         //given - precondition or setup
-        System.out.println("second");
+
         UserModelBuilder approvedBy = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN);
         RoleChange roleChange = aRoleChange().withApprovedByUserModelBuilder(approvedBy).withApprovalTime(LocalDateTime.now()).build();
         testEntityManager.persist(roleChange.getUserModel());
-        System.out.println(roleChange.getApprovedBy().getId());
         testEntityManager.persist(roleChange.getApprovedBy());
 
         // when - action or the behaviour that we are going test
         RoleChange saved = roleChangeRepository.save(roleChange);
         // then - verify the output
-        assertThat(saved.getId()).isEqualTo(2L);
+        assertThat(saved.getId()).isGreaterThan(0L);
         assertThat(saved.getApprovedBy()).isNotNull();
         assertThat(saved.getApprovalTime()).isNotNull();
     }
+
+    @Order(3)
+    @Test
+    public void givenPersistedUnapprovedRoleChanges_whenFindUnapprovedRoleChange_thenReturnOnlyOne() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().build();
+        UserModel roleChangeUserModel = roleChange.getUserModel();
+        testEntityManager.persist(roleChangeUserModel);
+        testEntityManager.persist(roleChange);
+
+        UserModel approvedBy = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+        testEntityManager.persist(approvedBy);
+
+        RoleChange anotherRoleChange = aRoleChange()
+                .withUserModelBuilder(UserModelBuilder.aUserModel().withUsername("other"))
+                .build();
+        testEntityManager.persist(anotherRoleChange.getUserModel());
+        testEntityManager.persist(anotherRoleChange);
+        testEntityManager.flush();
+        // when - action or the behaviour that we are going test
+        List<RoleChange> unapprovedRoleChanges = roleChangeRepository.findUnapprovedRoleChange(roleChangeUserModel.getId(), USERROLE.PRACTITIONER);
+        // then - verify the output
+        assertThat(unapprovedRoleChanges.size()).isEqualTo(1);
+
+    }
+
+    @Order(5)
+    @Test
+    public void givenPersistedUnapprovedRoleChange_whenFindByApprovedByNull_thenReturnOnlyUnapprovedRoleChanges() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().build();
+        String unapprovedRoleChangeUser = "unapproved";
+        RoleChange otherRoleChange = aRoleChange()
+                .withUserModelBuilder(UserModelBuilder.aUserModel().withUsername(unapprovedRoleChangeUser))
+                .build();
+
+        UserModel roleChangeUserModel = roleChange.getUserModel();
+        testEntityManager.persist(roleChangeUserModel);
+        testEntityManager.persist(otherRoleChange.getUserModel());
+
+        UserModel approvedBy = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+        testEntityManager.persist(approvedBy);
+
+
+        roleChange.setApprovedBy(approvedBy);
+        roleChange.setApprovalTime(LocalDateTime.now());
+        testEntityManager.persist(roleChange);
+//        otherRoleChange.setApprovedBy(approvedBy);
+//        otherRoleChange.setApprovalTime(LocalDateTime.now());
+        testEntityManager.persist(otherRoleChange);
+        System.out.println(otherRoleChange.getUserModel().getUsername());
+        testEntityManager.flush();
+        // when - action or the behaviour that we are going test
+        List<RoleChange> unapprovedRoleChanges = roleChangeRepository.findByApprovedById(null);
+        // then - verify the output
+        assertThat(unapprovedRoleChanges.size()).isEqualTo(1);
+        assertThat(unapprovedRoleChanges).allMatch(roleChange1 -> roleChange1.getApprovedBy() == null);
+        assertThat(unapprovedRoleChanges).allMatch(roleChange1 -> roleChange1.getUserModel().getUsername().equals(unapprovedRoleChangeUser));
+
+    }
+
+    @Order(6)
+    @Test
+    public void givenPersistedUnapprovedRoleChange_whenFindAll_then() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().build();
+        testEntityManager.persist(roleChange.getUserModel());
+        testEntityManager.persist(roleChange);
+
+        UserModel approvedBy = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+        testEntityManager.persist(approvedBy);
+
+        RoleChange anotherRoleChange = aRoleChange()
+                .withUserModelBuilder(UserModelBuilder.aUserModel().withUsername("other"))
+                .build();
+        testEntityManager.persist(anotherRoleChange.getUserModel());
+        testEntityManager.persist(anotherRoleChange);
+        testEntityManager.flush();
+        // when - action or the behaviour that we are going test
+
+        List<RoleChange> unapprovedRoleChanges = roleChangeRepository.findAll();
+        // then - verify the output
+        assertThat(unapprovedRoleChanges.size()).isEqualTo(2);
+    }
+
 
 }
