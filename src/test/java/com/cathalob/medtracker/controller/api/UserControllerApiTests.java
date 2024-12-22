@@ -2,11 +2,13 @@ package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;
+import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Disabled;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -37,12 +40,15 @@ class UserControllerApiTests {
     private UserService userService;
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
     @MockBean
     private JwtServiceImpl jwtService;
     @MockBean
     private AuthenticationServiceApi authenticationServiceApi;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
+
     @Test
     @WithMockUser("user@user.com")
     public void givenGetUserModelsRequest_when_then() throws Exception {
@@ -79,22 +85,44 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
     }
     @Disabled("Ensure role name is a real one")
-      @Test
-          public void givenBogusRoleName_when_then(){
-              //given - precondition or setup
+    @Test
+    public void givenBogusRoleName_when_then() {
+        //given - precondition or setup
 
-              // when - action or the behaviour that we are going test
+        // when - action or the behaviour that we are going test
 
-              // then - verify the output
-          }
+        // then - verify the output
+    }
+
     @Disabled("Prevent many role changes for same user, for the same type of role")
-      @Test
-          public void givenMultipleRoleChangeRequests_when_then(){
-              //given - precondition or setup
+    @Test
+    public void givenMultipleRoleChangeRequests_when_then() {
+        //given - precondition or setup
 
-              // when - action or the behaviour that we are going test
+        // when - action or the behaviour that we are going test
 
-              // then - verify the output
-          }
+        // then - verify the output
+    }
 
+    @Test
+    @WithMockUser("user@user.com")
+    public void givenRoleChangeApproval_whenApproveRoleChange_thenReturnSuccessfulResponse() throws Exception {
+        //given - precondition or setup
+        UserModel userModel = aUserModel().build();
+        RoleChangeApprovalRequest roleChangeApprovalRequest = new RoleChangeApprovalRequest(1L);
+        GenericRequestResponse genericRequestResponse = new GenericRequestResponse(true);
+        given(userService.approveRoleChange(1L, userModel.getUsername()))
+                .willReturn(genericRequestResponse);
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/approve")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(roleChangeApprovalRequest)));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requestSucceeded", CoreMatchers.is(genericRequestResponse.isRequestSucceeded())))
+                .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
+    }
 }
