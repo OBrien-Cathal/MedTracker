@@ -4,14 +4,11 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,10 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-
-//@Sql(scripts = "classpath:clean.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
-//@Sql(scripts = "classpath:schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class RoleChangeRepositoryTests {
     @Autowired
     private TestEntityManager testEntityManager;
@@ -33,7 +26,7 @@ class RoleChangeRepositoryTests {
     private RoleChangeRepository roleChangeRepository;
 
     @Test
-    @Order(1)
+
     public void givenRoleChange_whenSave_thenReturnSavedRoleChange() {
         //given - precondition or setup
         RoleChange roleChange = aRoleChange().build();
@@ -48,7 +41,7 @@ class RoleChangeRepositoryTests {
     }
 
     @Test
-    @Order(2)
+
     public void givenApprovedRoleChange_whenSave_thenReturnSavedRoleChange() {
         //given - precondition or setup
 
@@ -65,7 +58,7 @@ class RoleChangeRepositoryTests {
         assertThat(saved.getApprovalTime()).isNotNull();
     }
 
-    @Order(3)
+
     @Test
     public void givenPersistedUnapprovedRoleChanges_whenFindUnapprovedRoleChange_thenReturnOnlyOne() {
         //given - precondition or setup
@@ -90,7 +83,7 @@ class RoleChangeRepositoryTests {
 
     }
 
-    @Order(5)
+
     @Test
     public void givenPersistedUnapprovedRoleChange_whenFindByApprovedByNull_thenReturnOnlyUnapprovedRoleChanges() {
         //given - precondition or setup
@@ -157,7 +150,7 @@ class RoleChangeRepositoryTests {
         System.out.println(otherUserRoleChange.getUserModel().getUsername());
         testEntityManager.flush();
         // when - action or the behaviour that we are going test
-        List<RoleChange> unapprovedRoleChangesToPractitioner = roleChangeRepository.findByUserModelIdAndNewRoleAndApprovedById(roleChangeUserModel.getId(),USERROLE.PRACTITIONER, null);
+        List<RoleChange> unapprovedRoleChangesToPractitioner = roleChangeRepository.findByUserModelIdAndNewRoleAndApprovedById(roleChangeUserModel.getId(), USERROLE.PRACTITIONER, null);
         // then - verify the output
         assertThat(unapprovedRoleChangesToPractitioner.size()).isEqualTo(1);
         assertThat(unapprovedRoleChangesToPractitioner).allMatch(roleChange1 -> roleChange1.getApprovedBy() == null);
@@ -166,7 +159,7 @@ class RoleChangeRepositoryTests {
 
     }
 
-    @Order(6)
+
     @Test
     public void givenPersistedUnapprovedRoleChange_whenFindAll_then() {
         //given - precondition or setup
