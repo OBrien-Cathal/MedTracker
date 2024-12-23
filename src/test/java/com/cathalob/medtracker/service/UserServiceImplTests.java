@@ -6,8 +6,6 @@ import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
-import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
-import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
@@ -211,9 +209,20 @@ class UserServiceImplTests {
         assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
         verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
     }
-    @Disabled("validate role name param exists when submitting")
+
+
+    @Disabled("Validation error returned if unapproved role change exists for the same type of role and user")
     @Test
-    public void givenBogusRoleName_when_then() throws Exception {
+    public void givenExistingUnapprovedRoleChangeForRoleAndUser_when_then() {
+        //given - precondition or setup
+
+        // when - action or the behaviour that we are going test
+
+        // then - verify the output
+    }
+    @Disabled("Validation error returned if current user role can not be changed")
+    @Test
+    public void givenCurrentAdminRole_when_then() {
         //given - precondition or setup
 
         // when - action or the behaviour that we are going test
@@ -221,15 +230,6 @@ class UserServiceImplTests {
         // then - verify the output
     }
 
-    @Disabled("Prevent many role changes for same user, for the same type of role")
-    @Test
-    public void givenMultipleRoleChangeRequests_when_then() {
-        //given - precondition or setup
-
-        // when - action or the behaviour that we are going test
-
-        // then - verify the output
-    }
 
     @Test
     public void givenExistingRoleChange_whenApproveRoleChange_thenReturnSuccessfulResponse() {

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +91,7 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
     }
 
-    @Disabled("Ensure role name param exists when submitting")
+    @DisplayName("Non existing role name causes unhandled exception")
     @Test
     @WithMockUser("user@user.com")
     public void givenBogusRoleName_when_then() throws Exception {
@@ -108,16 +108,6 @@ class UserControllerApiTests {
         usersResponse
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
-    }
-
-    @Disabled("Prevent many role changes for same user, for the same type of role")
-    @Test
-    public void givenMultipleRoleChangeRequests_when_then() {
-        //given - precondition or setup
-
-        // when - action or the behaviour that we are going test
-
-        // then - verify the output
     }
 
     @Test
