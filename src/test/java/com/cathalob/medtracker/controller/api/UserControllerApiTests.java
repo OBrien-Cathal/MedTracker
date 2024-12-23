@@ -2,7 +2,9 @@ package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;
+import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
+import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
@@ -11,6 +13,7 @@ import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
@@ -71,11 +74,14 @@ class UserControllerApiTests {
     public void givenRoleRequest_when_then() throws Exception {
         //given - precondition or setup
         UserModel userModel = aUserModel().build();
+        RoleChangeRequest roleChangeRequest = RoleChangeRequest.builder().newRole(USERROLE.PRACTITIONER).build();
         GenericRequestResponse genericRequestResponse = new GenericRequestResponse(true, "Request pending with ID: 1");
-        given(userService.submitRoleChange("PRACTITIONER", userModel.getUsername()))
+        given(userService.submitRoleChange(roleChangeRequest.getNewRole(), userModel.getUsername()))
                 .willReturn(genericRequestResponse);
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/{ROLE_NAME}", "PRACTITIONER"));
+        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/submit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(roleChangeRequest)));
 
         // then - verify the output
         usersResponse
@@ -84,14 +90,24 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$.requestSucceeded", CoreMatchers.is(genericRequestResponse.isRequestSucceeded())))
                 .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
     }
-    @Disabled("Ensure role name is a real one")
+
+    @Disabled("Ensure role name param exists when submitting")
     @Test
-    public void givenBogusRoleName_when_then() {
+    @WithMockUser("user@user.com")
+    public void givenBogusRoleName_when_then() throws Exception {
         //given - precondition or setup
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("newRole", "foo");
 
         // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/submit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonObject.toString()));
 
         // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isInternalServerError());
     }
 
     @Disabled("Prevent many role changes for same user, for the same type of role")

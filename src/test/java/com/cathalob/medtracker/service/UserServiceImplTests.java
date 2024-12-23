@@ -6,12 +6,15 @@ import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
+import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
+import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -196,15 +199,36 @@ class UserServiceImplTests {
     public void givenRoleChange_whenSubmitRoleChange_thenReturnSavedRoleChange() {
         //given - precondition or setup
         RoleChange roleChange = aRoleChange().withId(1L).build();
+        USERROLE newRole = USERROLE.PRACTITIONER;
+
         given(userModelRepository.findByUsername(roleChange.getUserModel().getUsername())).willReturn(Optional.of(userModel));
         given(roleChangeRepository.save(any(RoleChange.class))).willReturn(roleChange);
 
         // when - action or the behaviour that we are going test
-        String roleName = roleChange.getNewRole().toString();
-        GenericRequestResponse genericRequestResponse = userService.submitRoleChange(roleName, userModel.getUsername());
+        GenericRequestResponse genericRequestResponse = userService.submitRoleChange(newRole,
+                userModel.getUsername());
         // then - verify the output
         assertThat(genericRequestResponse.isRequestSucceeded()).isTrue();
         verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
+    }
+    @Disabled("validate role name param exists when submitting")
+    @Test
+    public void givenBogusRoleName_when_then() throws Exception {
+        //given - precondition or setup
+
+        // when - action or the behaviour that we are going test
+
+        // then - verify the output
+    }
+
+    @Disabled("Prevent many role changes for same user, for the same type of role")
+    @Test
+    public void givenMultipleRoleChangeRequests_when_then() {
+        //given - precondition or setup
+
+        // when - action or the behaviour that we are going test
+
+        // then - verify the output
     }
 
     @Test
@@ -214,7 +238,6 @@ class UserServiceImplTests {
         roleChange.setUserModel(userModel);
         UserModel approvedBy = aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
         given(userModelRepository.findByUsername(approvedBy.getUsername())).willReturn(Optional.of(approvedBy));
-//        given(userModelRepository.findById(userModel.getId())).willReturn(Optional.of(userModel));
         given(roleChangeRepository.findById(roleChange.getId()))
                 .willReturn(Optional.of(roleChange));
 

@@ -19,7 +19,8 @@ public interface UserService {
     List<UserModel> getPatientUserModels();
 
     //  USER Role functions
-    GenericRequestResponse submitRoleChange(String newRoleName, String submitterUserName);
+    //    NEW ROLE functions
+    GenericRequestResponse submitRoleChange(USERROLE newRole, String submitterUserName);
 
     GenericRequestResponse approveRoleChange(Long roleChangeId, String approvedByUserName);
 

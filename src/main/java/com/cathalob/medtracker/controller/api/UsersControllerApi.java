@@ -1,7 +1,9 @@
 package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.model.UserModel;
+import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
+import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +24,12 @@ public class UsersControllerApi {
         return ResponseEntity.ok(userService.getUserModels());
     }
 
-    @PostMapping("/role-request/{roleName}")
+    @PostMapping("/role-request/submit")
     public ResponseEntity<GenericRequestResponse> submitRoleChangeRequest(
-            @PathVariable("roleName") String roleName,
+            @RequestBody RoleChangeRequest roleChangeRequest,
             Authentication authentication) {
-        GenericRequestResponse requestResponse = userService.submitRoleChange(roleName, authentication.getName());
+        GenericRequestResponse requestResponse = userService.submitRoleChange(roleChangeRequest.getNewRole(),
+                authentication.getName());
         return ResponseEntity.ok(requestResponse);
     }
 

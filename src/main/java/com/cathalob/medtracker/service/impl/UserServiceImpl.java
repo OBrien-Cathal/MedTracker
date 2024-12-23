@@ -15,6 +15,7 @@ import com.cathalob.medtracker.repository.UserModelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Transactional
 public class UserServiceImpl implements com.cathalob.medtracker.service.UserService {
     private final UserModelRepository userModelRepository;
     private final PractitionerRoleRequestRepository practitionerRoleRequestRepository;
@@ -56,18 +58,39 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
     //    NEW ROLE functions
     @Override
-    public GenericRequestResponse submitRoleChange(String newRoleName, String submitterUserName) {
-        UserModel subbmiterUserModel = findByLogin(submitterUserName);
-        if (subbmiterUserModel == null) return new GenericRequestResponse(false);
+    public GenericRequestResponse submitRoleChange(USERROLE newRole, String submitterUserName) {
+        GenericRequestResponse requestResponse = new GenericRequestResponse();
 
-        USERROLE newUserrole = USERROLE.valueOf(newRoleName);
+        UserModel subbmiterUserModel = findByLogin(submitterUserName);
         RoleChange roleChange = new RoleChange();
-        roleChange.setNewRole(newUserrole);
+        roleChange.setNewRole(newRole);
         roleChange.setUserModel(subbmiterUserModel);
         roleChange.setOldRole(subbmiterUserModel.getRole());
         roleChange.setRequestTime(LocalDateTime.now());
-        RoleChange savedRoleChange = submitRoleChange(roleChange);
-        return new GenericRequestResponse(true, "Request pending with ID: " + savedRoleChange.getId());
+
+        List<String> errors = validateRoleChangeSubmission(roleChange);
+        if (!errors.isEmpty()) {
+            return requestResponse.failure(errors);
+        }
+
+        RoleChange savedRoleChange = roleChangeRepository.save(roleChange);
+        return requestResponse.success("Request pending with ID: " + savedRoleChange.getId());
+    }
+
+    private List<String> validateRoleChangeSubmission(RoleChange roleChange) {
+        ArrayList<String> errors = new ArrayList<>();
+        List<RoleChange> unapproved = roleChangeRepository.findByUserModelIdAndNewRoleAndApprovedById(
+                roleChange.getUserModel().getId(),
+                roleChange.getNewRole(),
+                null);
+        if (roleChange.getUserModel().getRole() != USERROLE.USER) {
+            errors.add(String.format("Current User Role: %s is not a candidate for role change to: %s",
+                    roleChange.getUserModel().getRole().name(),
+                    roleChange.getNewRole()));
+        }
+        if (!unapproved.isEmpty())
+            errors.add("Unapproved request already submitted for role: " + roleChange.getNewRole().name());
+        return errors;
     }
 
     @Override
@@ -86,14 +109,19 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         RoleChange roleChange = maybeRoleChange.get();
 
         List<String> errors = validateRoleChangeApproval(roleChange);
-        if (!errors.isEmpty()){
+        if (!errors.isEmpty()) {
             response.setMessage("Validation Failed");
             response.setErrors(errors);
             return response;
         }
+
         roleChange.setApprovedBy(approvedBy);
         roleChange.setApprovalTime(LocalDateTime.now());
+        UserModel roleChangeUserModel = roleChange.getUserModel();
+        roleChangeUserModel.setRole(roleChange.getNewRole());
+
         roleChangeRepository.save(roleChange);
+        userModelRepository.save(roleChangeUserModel);
         return response.success();
     }
 
@@ -112,10 +140,6 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         }
 
         return errors;
-    }
-
-    private RoleChange submitRoleChange(RoleChange roleChange) {
-        return roleChangeRepository.save(roleChange);
     }
 
     //    USER Role functions

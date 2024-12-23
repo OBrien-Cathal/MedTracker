@@ -20,7 +20,7 @@ public class GenericRequestResponse {
     public GenericRequestResponse(boolean b) {
         errors = new ArrayList<>();
         this.requestSucceeded = b;
-        this.message = b ? getSucceededMessage() : "Failed";
+        this.message = b ? getSucceededMessage() : getFailedMessage();
     }
 
     public GenericRequestResponse(boolean requestSucceeded, String message) {
@@ -28,10 +28,35 @@ public class GenericRequestResponse {
         this.requestSucceeded = requestSucceeded;
         this.message = message;
     }
-    public GenericRequestResponse success(){
-        this.requestSucceeded=true;
+
+    public GenericRequestResponse success() {
+        this.requestSucceeded = true;
         this.setMessage(getSucceededMessage());
         return this;
+    }
+
+    public GenericRequestResponse success(String successMessage) {
+        this.requestSucceeded = true;
+        this.setMessage(getSucceededMessage() + ": " + successMessage);
+        return this;
+    }
+
+    public GenericRequestResponse failure() {
+        this.requestSucceeded = false;
+        this.setMessage(getFailedMessage());
+        return this;
+    }
+
+    public GenericRequestResponse failure(List<String> validationErrors) {
+        this.requestSucceeded = false;
+        this.setMessage(getFailedMessage() + ": Validation");
+        this.setErrors(validationErrors);
+        return this;
+    }
+
+
+    private static String getFailedMessage() {
+        return "Failed";
     }
 
     private static String getSucceededMessage() {
