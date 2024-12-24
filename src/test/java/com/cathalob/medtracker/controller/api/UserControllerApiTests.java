@@ -6,6 +6,7 @@ import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
 import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
@@ -60,7 +61,7 @@ class UserControllerApiTests {
 
         BDDMockito.given(userService.getUserModels()).willReturn(users);
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(get("/api/v1/users"));
+        ResultActions usersResponse = mockMvc.perform(get(getUsersUrlPath()));
 
         // then - verify the output
         usersResponse
@@ -69,6 +70,11 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", Matchers.hasSize(2)));
     }
+
+    private static String getUsersUrlPath() {
+        return "/api/v1/users";
+    }
+
     @Test
     @WithMockUser("user@user.com")
     public void givenRoleRequest_when_then() throws Exception {
@@ -79,7 +85,7 @@ class UserControllerApiTests {
         given(userService.submitRoleChange(roleChangeRequest.getNewRole(), userModel.getUsername()))
                 .willReturn(genericRequestResponse);
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/submit")
+        ResultActions usersResponse = mockMvc.perform(post(getRoleRequestsUrlPath() + "/submit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(roleChangeRequest)));
 
@@ -100,7 +106,7 @@ class UserControllerApiTests {
         jsonObject.put("newRole", "foo");
 
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/submit")
+        ResultActions usersResponse = mockMvc.perform(post(getRoleRequestsUrlPath() + "/submit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonObject.toString()));
 
@@ -120,7 +126,7 @@ class UserControllerApiTests {
         given(userService.approveRoleChange(1L, userModel.getUsername()))
                 .willReturn(genericRequestResponse);
         // when - action or the behaviour that we are going test
-        ResultActions usersResponse = mockMvc.perform(post("/api/v1/users/role-request/approve")
+        ResultActions usersResponse = mockMvc.perform(post(getRoleRequestsUrlPath() + "/approve")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(roleChangeApprovalRequest)));
 
@@ -131,4 +137,35 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$.requestSucceeded", CoreMatchers.is(genericRequestResponse.isRequestSucceeded())))
                 .andExpect(jsonPath("$.message", CoreMatchers.is(genericRequestResponse.getMessage())));
     }
+
+    @DisplayName("Get Role change status returns ok and status object")
+    @Test
+    @WithMockUser("user@user.com")
+    public void givenRoleChangeOrNone_whenGetRoleChangeStatus_thenReturnRoleChangeStatusResponse() throws Exception {
+        //given - precondition or setup
+        UserModel userModel = aUserModel().build();
+
+        RoleChangeStatusResponse roleChangeStatusResponse = new RoleChangeStatusResponse(
+                false,
+                false,
+                false,
+                false);
+        given(userService.getRoleChangeStatus(userModel.getUsername()))
+                .willReturn(roleChangeStatusResponse);
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(get(getRoleRequestsUrlPath() + "/status")
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.adminRoleChangeExists", CoreMatchers.is(roleChangeStatusResponse.isAdminRoleChangeExists())));
+    }
+
+    private static String getRoleRequestsUrlPath() {
+        return getUsersUrlPath() + "/role-requests";
+    }
+
+
 }

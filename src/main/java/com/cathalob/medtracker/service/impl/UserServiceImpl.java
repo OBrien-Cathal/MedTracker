@@ -143,6 +143,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         return errors;
     }
 
+    @Override
     public RoleChangeStatusResponse getRoleChangeStatus(String username) {
         List<RoleChange> byUserModelId = roleChangeRepository.findByUserModelId(findByLogin(username).getId());
         Map<USERROLE, RoleChange> userroleRoleChangeMap =

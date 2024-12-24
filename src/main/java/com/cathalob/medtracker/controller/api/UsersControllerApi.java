@@ -5,6 +5,7 @@ import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
 import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class UsersControllerApi {
         return ResponseEntity.ok(userService.getUserModels());
     }
 
-    @PostMapping("/role-request/submit")
+    @PostMapping("/role-requests/submit")
     public ResponseEntity<GenericRequestResponse> submitRoleChangeRequest(
             @RequestBody RoleChangeRequest roleChangeRequest,
             Authentication authentication) {
@@ -33,7 +34,7 @@ public class UsersControllerApi {
         return ResponseEntity.ok(requestResponse);
     }
 
-    @PostMapping("/role-request/approve")
+    @PostMapping("/role-requests/approve")
     public ResponseEntity<GenericRequestResponse> approveRoleChange(
             @RequestBody RoleChangeApprovalRequest approvalRequest,
             Authentication authentication) {
@@ -41,6 +42,10 @@ public class UsersControllerApi {
                 authentication.getName());
         return ResponseEntity.ok(requestResponse);
     }
-
+    @GetMapping("/role-requests/status")
+    public ResponseEntity<RoleChangeStatusResponse> getRoleChangeStatus(Authentication authentication) {
+        RoleChangeStatusResponse response = userService.getRoleChangeStatus(authentication.getName());
+        return ResponseEntity.ok(response);
+    }
 
 }
