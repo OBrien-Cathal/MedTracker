@@ -7,6 +7,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -20,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -250,6 +252,60 @@ class UserServiceImplTests {
         assertThat(genericRequestResponse.getMessage()).isEqualTo(expectedResponse.getMessage());
         assertThat(genericRequestResponse.getErrors()).size().isEqualTo(0);
         verify(roleChangeRepository, times(1)).save(any(RoleChange.class));
+    }
+
+    @Test
+    public void givenExistingApprovedPractitionerRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        roleChange.setUserModel(userModel);
+        UserModel approvedBy = aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+        roleChange.setApprovedBy(approvedBy);
+        roleChange.setApprovalTime(LocalDateTime.now());
+        given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
+        given(roleChangeRepository.findByUserModelId(userModel.getId()))
+                .willReturn(List.of(roleChange));
+
+        RoleChangeStatusResponse expected = new RoleChangeStatusResponse(
+                false,
+                false,
+                true,
+                true);
+        // when - action or the behaviour that we are going test
+        RoleChangeStatusResponse roleChangeStatus = userService.getRoleChangeStatus(userModel.getUsername());
+
+        // then - verify the output
+
+        assertThat(roleChangeStatus.isAdminRoleChangeExists()).isEqualTo(expected.isAdminRoleChangeExists());
+        assertThat(roleChangeStatus.isApprovedAdminRoleChange()).isEqualTo(expected.isApprovedAdminRoleChange());
+        assertThat(roleChangeStatus.isPractitionerRoleChangeExists()).isEqualTo(expected.isPractitionerRoleChangeExists());
+        assertThat(roleChangeStatus.isApprovedPractitionerRoleChange()).isEqualTo(expected.isApprovedPractitionerRoleChange());
+        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
+    }
+
+    @Test
+    public void givenExistingUnapprovedPractitionerRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        roleChange.setUserModel(userModel);
+        given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
+        given(roleChangeRepository.findByUserModelId(userModel.getId()))
+                .willReturn(List.of(roleChange));
+
+        RoleChangeStatusResponse expected = new RoleChangeStatusResponse(
+                false,
+                false,
+                true,
+                false);
+        // when - action or the behaviour that we are going test
+        RoleChangeStatusResponse roleChangeStatus = userService.getRoleChangeStatus(userModel.getUsername());
+
+        // then - verify the output
+        assertThat(roleChangeStatus.isAdminRoleChangeExists()).isEqualTo(expected.isAdminRoleChangeExists());
+        assertThat(roleChangeStatus.isApprovedAdminRoleChange()).isEqualTo(expected.isApprovedAdminRoleChange());
+        assertThat(roleChangeStatus.isPractitionerRoleChangeExists()).isEqualTo(expected.isPractitionerRoleChangeExists());
+        assertThat(roleChangeStatus.isApprovedPractitionerRoleChange()).isEqualTo(expected.isApprovedPractitionerRoleChange());
+        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
 
 

@@ -9,6 +9,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -140,6 +141,30 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         }
 
         return errors;
+    }
+
+    public RoleChangeStatusResponse getRoleChangeStatus(String username) {
+        List<RoleChange> byUserModelId = roleChangeRepository.findByUserModelId(findByLogin(username).getId());
+        Map<USERROLE, RoleChange> userroleRoleChangeMap =
+                byUserModelId.stream().collect(Collectors.toMap(RoleChange::getNewRole, Function.identity()));
+
+        RoleChange practitionerRoleChange = userroleRoleChangeMap.get(USERROLE.PRACTITIONER);
+        RoleChange adminRoleChange = userroleRoleChangeMap.get(USERROLE.ADMIN);
+
+        boolean adminRoleExists = adminRoleChange != null;
+        boolean practitionerRoleChangeExists = practitionerRoleChange != null;
+
+        return new RoleChangeStatusResponse(
+                adminRoleExists,
+                (adminRoleExists && adminRoleChange.getApprovedBy() != null),
+                practitionerRoleChangeExists,
+                practitionerRoleChangeExists && practitionerRoleChange.getApprovedBy() != null
+        );
+    }
+
+    public List<RoleChange> getUnapprovedRoleChanges() {
+
+        return new ArrayList<>();
     }
 
     //    USER Role functions
