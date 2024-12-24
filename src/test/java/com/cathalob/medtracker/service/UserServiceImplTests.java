@@ -222,6 +222,7 @@ class UserServiceImplTests {
 
         // then - verify the output
     }
+
     @Disabled("Validation error returned if current user role can not be changed")
     @Test
     public void givenCurrentAdminRole_when_then() {
@@ -256,47 +257,62 @@ class UserServiceImplTests {
 
     @Test
     public void givenExistingApprovedPractitionerRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
-        //given - precondition or setup
-        RoleChange roleChange = aRoleChange().withId(1L).build();
-        roleChange.setUserModel(userModel);
-        UserModel approvedBy = aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
-        roleChange.setApprovedBy(approvedBy);
-        roleChange.setApprovalTime(LocalDateTime.now());
-        given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
-        given(roleChangeRepository.findByUserModelId(userModel.getId()))
-                .willReturn(List.of(roleChange));
-
-        RoleChangeStatusResponse expected = new RoleChangeStatusResponse(
-                false,
-                false,
-                true,
+        roleChangeStatusMatches(new RoleChangeStatusResponse(
+                        false,
+                        false,
+                        true,
+                        true),
+                USERROLE.PRACTITIONER,
                 true);
-        // when - action or the behaviour that we are going test
-        RoleChangeStatusResponse roleChangeStatus = userService.getRoleChangeStatus(userModel.getUsername());
-
-        // then - verify the output
-
-        assertThat(roleChangeStatus.isAdminRoleChangeExists()).isEqualTo(expected.isAdminRoleChangeExists());
-        assertThat(roleChangeStatus.isApprovedAdminRoleChange()).isEqualTo(expected.isApprovedAdminRoleChange());
-        assertThat(roleChangeStatus.isPractitionerRoleChangeExists()).isEqualTo(expected.isPractitionerRoleChangeExists());
-        assertThat(roleChangeStatus.isApprovedPractitionerRoleChange()).isEqualTo(expected.isApprovedPractitionerRoleChange());
-        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
 
     @Test
     public void givenExistingUnapprovedPractitionerRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
-        //given - precondition or setup
-        RoleChange roleChange = aRoleChange().withId(1L).build();
-        roleChange.setUserModel(userModel);
-        given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
-        given(roleChangeRepository.findByUserModelId(userModel.getId()))
-                .willReturn(List.of(roleChange));
-
-        RoleChangeStatusResponse expected = new RoleChangeStatusResponse(
+        roleChangeStatusMatches(new RoleChangeStatusResponse(
                 false,
                 false,
                 true,
+                false),
+                USERROLE.PRACTITIONER,
                 false);
+    }
+    @Test
+    public void givenExistingApprovedAdminRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
+        roleChangeStatusMatches(new RoleChangeStatusResponse(
+                        true,
+                        true,
+                        false,
+                        false),
+                USERROLE.ADMIN,
+                true);
+    }
+
+    @Test
+    public void givenExistingUnapprovedAdminRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
+        roleChangeStatusMatches(new RoleChangeStatusResponse(
+                true,
+                false,
+                false,
+                false),
+                USERROLE.ADMIN,
+                false);
+    }
+
+    private void roleChangeStatusMatches(RoleChangeStatusResponse expected, USERROLE newRole, boolean approved) {
+        //given - precondition or setup
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        roleChange.setNewRole(newRole);
+        roleChange.setUserModel(userModel);
+        given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
+
+        if (approved) {
+            UserModel approvedBy = aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
+            roleChange.setApprovedBy(approvedBy);
+            roleChange.setApprovalTime(LocalDateTime.now());
+        }
+        given(roleChangeRepository.findByUserModelId(userModel.getId()))
+                .willReturn(List.of(roleChange));
+
         // when - action or the behaviour that we are going test
         RoleChangeStatusResponse roleChangeStatus = userService.getRoleChangeStatus(userModel.getUsername());
 
@@ -307,7 +323,6 @@ class UserServiceImplTests {
         assertThat(roleChangeStatus.isApprovedPractitionerRoleChange()).isEqualTo(expected.isApprovedPractitionerRoleChange());
         verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
-
 
     @DisplayName("Failed password change request - unimplemented")
     @Test
