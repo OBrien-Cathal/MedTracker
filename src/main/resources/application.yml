@@ -2,6 +2,8 @@ server:
   port: 3100
 website:
   origin: http://localhost:5173
+api:
+  url: /api/v1/
 token:
   signing:
     key: EBE23F1FD75A89A9355F1A81D194EUEISJDLJg23455jjuriu43387kjksfgjlkiuRDDRTGFDXVRXFBERJLIUMLSIhhYLCISL

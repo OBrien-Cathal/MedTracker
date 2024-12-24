@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -52,6 +53,8 @@ class UserControllerApiTests {
     private AuthenticationServiceApi authenticationServiceApi;
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
+    @Value("${api.url}")
+    private String baseApiUrl;
 
     @Test
     @WithMockUser("user@user.com")
@@ -71,8 +74,8 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$", Matchers.hasSize(2)));
     }
 
-    private static String getUsersUrlPath() {
-        return "/api/v1/users";
+    private String getUsersUrlPath() {
+        return baseApiUrl + "/users";
     }
 
     @Test
@@ -163,7 +166,7 @@ class UserControllerApiTests {
                 .andExpect(jsonPath("$.adminRoleChangeExists", CoreMatchers.is(roleChangeStatusResponse.isAdminRoleChangeExists())));
     }
 
-    private static String getRoleRequestsUrlPath() {
+    private  String getRoleRequestsUrlPath() {
         return getUsersUrlPath() + "/role-requests";
     }
 
