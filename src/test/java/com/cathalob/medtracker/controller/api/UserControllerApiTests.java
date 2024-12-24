@@ -3,6 +3,7 @@ package com.cathalob.medtracker.controller.api;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.request.RoleChangeApprovalRequest;
 import com.cathalob.medtracker.payload.request.RoleChangeRequest;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
@@ -31,6 +32,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -149,10 +151,8 @@ class UserControllerApiTests {
         UserModel userModel = aUserModel().build();
 
         RoleChangeStatusResponse roleChangeStatusResponse = new RoleChangeStatusResponse(
-                false,
-                false,
-                false,
-                false);
+                new RoleChangeData(null, "", USERROLE.PRACTITIONER),
+                new RoleChangeData(null, "", USERROLE.ADMIN));
         given(userService.getRoleChangeStatus(userModel.getUsername()))
                 .willReturn(roleChangeStatusResponse);
         // when - action or the behaviour that we are going test
@@ -163,10 +163,11 @@ class UserControllerApiTests {
         usersResponse
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.adminRoleChangeExists", CoreMatchers.is(roleChangeStatusResponse.isAdminRoleChangeExists())));
+                .andExpect(jsonPath("$.practitionerRoleChange.id").doesNotExist())
+                .andExpect(jsonPath("$.practitionerRoleChange.userRole", CoreMatchers.is("PRACTITIONER")));
     }
 
-    private  String getRoleRequestsUrlPath() {
+    private String getRoleRequestsUrlPath() {
         return getUsersUrlPath() + "/role-requests";
     }
 

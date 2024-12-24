@@ -76,7 +76,7 @@ public class RoleChangeBuilder {
 
     public RoleChange build() {
         UserModel userModel = (approvedByUserModelBuilder != null) ? approvedByUserModelBuilder.build() : null;
-        return new RoleChange(null,
+        return new RoleChange(id,
                 newRole,
                 oldRole,
                 userModelBuilder.build(),

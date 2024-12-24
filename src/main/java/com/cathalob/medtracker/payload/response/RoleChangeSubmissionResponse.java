@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class RoleChangeStatusResponse {
-    private RoleChangeData practitionerRoleChange;
-    private RoleChangeData adminRoleChange;
-
+public class RoleChangeSubmissionResponse {
+    private RoleChangeData roleChangeData;
 
 }

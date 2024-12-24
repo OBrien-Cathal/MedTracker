@@ -257,54 +257,68 @@ class UserServiceImplTests {
 
     @Test
     public void givenExistingApprovedPractitionerRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
-        roleChangeStatusMatches(new RoleChangeStatusResponse(
-                        false,
-                        false,
-                        true,
-                        true),
+        RoleChangeStatusResponse roleChangeStatus = roleChangeStatusMatches(
                 USERROLE.PRACTITIONER,
                 true);
+        // then - verify the output
+        System.out.println(roleChangeStatus);
+        assertThat(roleChangeStatus.getAdminRoleChange().getId()).isEqualTo(null);
+        assertThat(roleChangeStatus.getAdminRoleChange().getStatus()).isEqualTo("Unrequested");
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getId()).isEqualTo(1L);
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getStatus()).isEqualTo("Approved");
+        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
 
     @Test
     public void givenExistingUnapprovedPractitionerRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
-        roleChangeStatusMatches(new RoleChangeStatusResponse(
-                false,
-                false,
-                true,
-                false),
+        RoleChangeStatusResponse roleChangeStatus = roleChangeStatusMatches(
                 USERROLE.PRACTITIONER,
                 false);
+        // then - verify the output
+        System.out.println(roleChangeStatus);
+        assertThat(roleChangeStatus.getAdminRoleChange().getId()).isEqualTo(null);
+        assertThat(roleChangeStatus.getAdminRoleChange().getStatus()).isEqualTo("Unrequested");
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getId()).isEqualTo(1L);
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getStatus()).isEqualTo("Pending");
+        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
+
     @Test
     public void givenExistingApprovedAdminRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
-        roleChangeStatusMatches(new RoleChangeStatusResponse(
-                        true,
-                        true,
-                        false,
-                        false),
+        RoleChangeStatusResponse roleChangeStatus = roleChangeStatusMatches(
                 USERROLE.ADMIN,
                 true);
+        // then - verify the output
+        System.out.println(roleChangeStatus);
+        assertThat(roleChangeStatus.getAdminRoleChange().getId()).isEqualTo(1L);
+        assertThat(roleChangeStatus.getAdminRoleChange().getStatus()).isEqualTo("Approved");
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getId()).isEqualTo(null);
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getStatus()).isEqualTo("Unrequested");
+        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
 
     @Test
     public void givenExistingUnapprovedAdminRoleChange_whenGetRoleChangeStatus_thenReturnRoleChangeStatus() {
-        roleChangeStatusMatches(new RoleChangeStatusResponse(
-                true,
-                false,
-                false,
-                false),
+        RoleChangeStatusResponse roleChangeStatus = roleChangeStatusMatches(
                 USERROLE.ADMIN,
                 false);
+
+        // then - verify the output
+        System.out.println(roleChangeStatus);
+        assertThat(roleChangeStatus.getAdminRoleChange().getId()).isEqualTo(1L);
+        assertThat(roleChangeStatus.getAdminRoleChange().getStatus()).isEqualTo("Pending");
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getId()).isEqualTo(null);
+        assertThat(roleChangeStatus.getPractitionerRoleChange().getStatus()).isEqualTo("Unrequested");
+        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
     }
 
-    private void roleChangeStatusMatches(RoleChangeStatusResponse expected, USERROLE newRole, boolean approved) {
+    private RoleChangeStatusResponse roleChangeStatusMatches(USERROLE newRole, boolean approved) {
         //given - precondition or setup
         RoleChange roleChange = aRoleChange().withId(1L).build();
         roleChange.setNewRole(newRole);
         roleChange.setUserModel(userModel);
         given(userModelRepository.findByUsername(userModel.getUsername())).willReturn(Optional.of(userModel));
-
+        System.out.println(roleChange);
         if (approved) {
             UserModel approvedBy = aUserModel().withRole(USERROLE.ADMIN).withUsername("admin").build();
             roleChange.setApprovedBy(approvedBy);
@@ -314,14 +328,7 @@ class UserServiceImplTests {
                 .willReturn(List.of(roleChange));
 
         // when - action or the behaviour that we are going test
-        RoleChangeStatusResponse roleChangeStatus = userService.getRoleChangeStatus(userModel.getUsername());
-
-        // then - verify the output
-        assertThat(roleChangeStatus.isAdminRoleChangeExists()).isEqualTo(expected.isAdminRoleChangeExists());
-        assertThat(roleChangeStatus.isApprovedAdminRoleChange()).isEqualTo(expected.isApprovedAdminRoleChange());
-        assertThat(roleChangeStatus.isPractitionerRoleChangeExists()).isEqualTo(expected.isPractitionerRoleChangeExists());
-        assertThat(roleChangeStatus.isApprovedPractitionerRoleChange()).isEqualTo(expected.isApprovedPractitionerRoleChange());
-        verify(roleChangeRepository, times(1)).findByUserModelId(1L);
+        return userService.getRoleChangeStatus(userModel.getUsername());
     }
 
     @DisplayName("Failed password change request - unimplemented")

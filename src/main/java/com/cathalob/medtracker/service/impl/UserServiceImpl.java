@@ -8,6 +8,7 @@ import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
+import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
@@ -152,15 +153,32 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         RoleChange practitionerRoleChange = userroleRoleChangeMap.get(USERROLE.PRACTITIONER);
         RoleChange adminRoleChange = userroleRoleChangeMap.get(USERROLE.ADMIN);
 
-        boolean adminRoleExists = adminRoleChange != null;
-        boolean practitionerRoleChangeExists = practitionerRoleChange != null;
+        RoleChangeStatusResponse roleChangeStatusResponse = new RoleChangeStatusResponse();
 
-        return new RoleChangeStatusResponse(
-                adminRoleExists,
-                (adminRoleExists && adminRoleChange.getApprovedBy() != null),
-                practitionerRoleChangeExists,
-                practitionerRoleChangeExists && practitionerRoleChange.getApprovedBy() != null
-        );
+        RoleChangeData adminRoleData = new RoleChangeData();
+        adminRoleData.setUserRole(USERROLE.ADMIN);
+
+        RoleChangeData practitionerRoleChangeData = new RoleChangeData();
+        practitionerRoleChangeData.setUserRole(USERROLE.PRACTITIONER);
+        System.out.println(adminRoleChange);
+        System.out.println(practitionerRoleChange);
+        if (adminRoleChange == null) {
+            adminRoleData.setStatus("Unrequested");
+        } else {
+            adminRoleData.setId(adminRoleChange.getId());
+            adminRoleData.setStatus(adminRoleChange.getApprovedBy() == null ? "Pending" : "Approved");
+        }
+        if (practitionerRoleChange == null) {
+            practitionerRoleChangeData.setStatus("Unrequested");
+        } else {
+            practitionerRoleChangeData.setId(practitionerRoleChange.getId());
+            practitionerRoleChangeData.setStatus(practitionerRoleChange.getApprovedBy() == null ? "Pending" : "Approved");
+        }
+
+
+        roleChangeStatusResponse.setPractitionerRoleChange(practitionerRoleChangeData);
+        roleChangeStatusResponse.setAdminRoleChange(adminRoleData);
+        return roleChangeStatusResponse;
     }
 
     public List<RoleChange> getUnapprovedRoleChanges() {
