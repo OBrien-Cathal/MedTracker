@@ -50,7 +50,11 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
     @Override
     public List<UserModel> getPatientUserModels() {
-        return userModelRepository.findByRole(USERROLE.USER);
+        return userModelRepository.findByRole(USERROLE.PATIENT);
+    }
+    @Override
+    public List<UserModel> getPractitionerUserModels() {
+        return userModelRepository.findByRole(USERROLE.PRACTITIONER);
     }
 
     public Map<Long, UserModel> getUserModelsById() {

@@ -20,6 +20,8 @@ public interface UserService {
 
     List<UserModel> getPatientUserModels();
 
+    List<UserModel> getPractitionerUserModels();
+
     //  USER Role functions
     //    NEW ROLE functions
     GenericRequestResponse submitRoleChange(USERROLE newRole, String submitterUserName);

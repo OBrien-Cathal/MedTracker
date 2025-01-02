@@ -17,8 +17,5 @@ import java.util.List;
 public class PatientRegistrationsControllerApi {
 
 private final UserService userService;
-    @GetMapping
-    public ResponseEntity<List<UserModel>> getPatientUserModels(Authentication authentication) {
-        return ResponseEntity.ok(userService.getPatientUserModels());
-    }
+
 }

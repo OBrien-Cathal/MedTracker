@@ -47,44 +47,34 @@ class UserModelRepositoryTests {
 
     @Test
     public void givenUSERROLE_USER_whenFindRole_thenReturnExistingUserModelsWithRoleUSER() {
-        //given - precondition or setup
-        persistUserForAllRoles();
-
-        // when - action or the behaviour that we are going test
-        List<UserModel> byRole = userModelRepository.findByRole(USERROLE.USER);
-
-        // then - verify the output
-        assertThat(byRole.size()).isEqualTo(1);
+        setupUserPerRoleAndFindByRole(USERROLE.USER);
     }
-
     @Test
-    public void givenUSERROLE_PRACT_whenFindRole_thenReturnExistingUserModelsWithRolePRACT() {
-        //given - precondition or setup
-        persistUserForAllRoles();
-
-        // when - action or the behaviour that we are going test
-        List<UserModel> byRole = userModelRepository.findByRole(USERROLE.PRACTITIONER);
-
-        // then - verify the output
-        assertThat(byRole.size()).isEqualTo(1);
+    public void givenUSERROLE_PATIENT_whenFindRole_thenReturnExistingUserModelsWithRolePATIENT() {
+        setupUserPerRoleAndFindByRole(USERROLE.PATIENT);
     }
-
+    @Test
+    public void givenUSERROLE_PRACT_whenFindRole_thenReturnExistingUserModelsWithRolePRACTITIONER() {
+        setupUserPerRoleAndFindByRole(USERROLE.PRACTITIONER);
+    }
     @Test
     public void givenUSERROLE_ADMIN_whenFindRole_thenReturnExistingUserModelsWithRoleADMIN() {
+        setupUserPerRoleAndFindByRole(USERROLE.ADMIN);
+    }
+
+    private void setupUserPerRoleAndFindByRole(USERROLE roleToFind){
         //given - precondition or setup
         persistUserForAllRoles();
-
         // when - action or the behaviour that we are going test
-        List<UserModel> byRole = userModelRepository.findByRole(USERROLE.USER);
-
+        List<UserModel> byRole = userModelRepository.findByRole(roleToFind);
         // then - verify the output
         assertThat(byRole.size()).isEqualTo(1);
     }
-
 
     private void persistUserForAllRoles() {
         UserModel userModelWithRoleUSER = aUserModel().build();
         testEntityManager.persist(userModelWithRoleUSER);
+        testEntityManager.persist(aUserModel().withRole(USERROLE.PATIENT).build());
         testEntityManager.persist(aUserModel().withRole(USERROLE.PRACTITIONER).build());
         testEntityManager.persist(aUserModel().withRole(USERROLE.ADMIN).build());
     }
