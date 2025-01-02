@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.controller;
 
 import com.cathalob.medtracker.service.impl.UserServiceImpl;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +15,8 @@ public class PractitionerController {
     }
 
     @GetMapping("/practitioner/patients")
-    public String getPatients(Model model) {
-        model.addAttribute("users", userService.getPatientUserModels());
+    public String getPatients(Model model, Authentication authentication) {
+        model.addAttribute("users", userService.getPatientUserModels(authentication.getName()));
         return "practitioner/patientsList";
     }
 

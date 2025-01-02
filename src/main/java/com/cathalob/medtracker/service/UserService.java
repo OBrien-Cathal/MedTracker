@@ -18,7 +18,8 @@ public interface UserService {
 
     List<UserModel> getUserModels();
 
-    List<UserModel> getPatientUserModels();
+    List<UserModel> getPatientUserModels(String username);
+
 
     List<UserModel> getPractitionerUserModels();
 

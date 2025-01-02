@@ -49,7 +49,9 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
-    public List<UserModel> getPatientUserModels() {
+    public List<UserModel> getPatientUserModels(String username) {
+        UserModel userModel = findByLogin(username);
+        if (userModel==null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
         return userModelRepository.findByRole(USERROLE.PATIENT);
     }
     @Override

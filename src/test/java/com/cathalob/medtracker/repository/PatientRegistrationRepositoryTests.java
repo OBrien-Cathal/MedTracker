@@ -13,7 +13,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static com.cathalob.medtracker.testdata.RoleChangeBuilder.aRoleChange;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -54,10 +54,6 @@ public class UsersControllerApi {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/patients")
-    public ResponseEntity<List<UserModel>> getPatientUserModels(Authentication authentication) {
-        return ResponseEntity.ok(userService.getPatientUserModels());
-    }
 
     @GetMapping("/practitioners")
     public ResponseEntity<List<UserModel>> getPractitionerUserModels() {
