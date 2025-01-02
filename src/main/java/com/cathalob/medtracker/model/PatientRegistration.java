@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class PatientRegistration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "USERMODEL_ID", nullable = false)
