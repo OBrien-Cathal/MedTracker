@@ -6,6 +6,7 @@ import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
 
 import java.util.List;
@@ -32,6 +33,9 @@ public interface UserService {
     RoleChangeStatusResponse getRoleChangeStatus(String username);
 
     List<RoleChangeData> getUnapprovedRoleChanges();
+
+    //    Patient registration
+    PatientRegistrationResponse registerPatient(String username, Long practitionerId);
 
     boolean submitPractitionerRoleRequest(String username);
 

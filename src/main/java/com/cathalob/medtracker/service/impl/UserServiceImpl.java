@@ -4,13 +4,17 @@ import com.cathalob.medtracker.dto.PractitionerRoleRequestsDTO;
 import com.cathalob.medtracker.exception.PractitionerRoleRequestNotFound;
 import com.cathalob.medtracker.exception.PractitionerRoleRequestValidationFailed;
 import com.cathalob.medtracker.exception.UserNotFound;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
+import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -35,6 +39,7 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     private final UserModelRepository userModelRepository;
     private final PractitionerRoleRequestRepository practitionerRoleRequestRepository;
     private final RoleChangeRepository roleChangeRepository;
+    private final PatientRegistrationRepository patientRegistrationRepository;
 
     @Override
     public UserModel findByLogin(String username) throws UserNotFound {
@@ -51,9 +56,10 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     @Override
     public List<UserModel> getPatientUserModels(String username) {
         UserModel userModel = findByLogin(username);
-        if (userModel==null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
+        if (userModel == null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
         return userModelRepository.findByRole(USERROLE.PATIENT);
     }
+
     @Override
     public List<UserModel> getPractitionerUserModels() {
         return userModelRepository.findByRole(USERROLE.PRACTITIONER);
@@ -207,6 +213,55 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
         }).toList();
 
     }
+
+
+    //    Patient registration
+    @Override
+    public PatientRegistrationResponse registerPatient(String username, Long practitionerId) {
+        UserModel toRegister = findByLogin(username);
+        Optional<UserModel> maybePractitioner = userModelRepository.findById(practitionerId);
+
+        PatientRegistrationResponse patientRegistrationResponse = new PatientRegistrationResponse();
+
+        if (maybePractitioner.isEmpty()) {
+            patientRegistrationResponse.setMessage("Registration failed");
+            patientRegistrationResponse.setErrors(List.of("Practitioner does not exist"));
+            return patientRegistrationResponse;
+        }
+
+        PatientRegistration patientRegistration = new PatientRegistration();
+        patientRegistration.setUserModel(toRegister);
+        patientRegistration.setPractitionerUserModel(maybePractitioner.get());
+
+
+        RoleChange roleChange = new RoleChange();
+        roleChange.setNewRole(USERROLE.PATIENT);
+        roleChange.setUserModel(toRegister);
+        roleChange.setOldRole(toRegister.getRole());
+        roleChange.setRequestTime(LocalDateTime.now());
+
+        List<String> errors = validateRoleChangeSubmission(roleChange);
+        if (!errors.isEmpty()) {
+            patientRegistrationResponse.setMessage("Registration failed");
+            patientRegistrationResponse.setErrors(errors);
+            return patientRegistrationResponse;
+        }
+
+        roleChangeRepository.save(roleChange);
+        patientRegistration.setRoleChange(roleChange);
+        PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
+
+        patientRegistrationResponse.setMessage("Registration Pending");
+        PatientRegistrationData patientRegistrationData = new PatientRegistrationData(
+                saved.getId(),
+                practitionerId,
+                false);
+        patientRegistrationResponse.setData(patientRegistrationData);
+        System.out.println(patientRegistrationResponse.getData().getId());
+        return patientRegistrationResponse;
+
+    }
+
 
     //    USER Role functions
     @Override

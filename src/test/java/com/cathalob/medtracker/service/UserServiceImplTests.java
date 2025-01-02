@@ -2,13 +2,16 @@ package com.cathalob.medtracker.service;
 
 import com.cathalob.medtracker.exception.PractitionerRoleRequestValidationFailed;
 import com.cathalob.medtracker.exception.UserNotFound;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
+import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
+import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -38,6 +41,9 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTests {
     @Mock
     private UserModelRepository userModelRepository;
+
+    @Mock
+    private PatientRegistrationRepository patientRegistrationRepository;
     @Mock
     private PractitionerRoleRequestRepository practitionerRoleRequestRepository;
     @Mock
@@ -233,27 +239,28 @@ class UserServiceImplTests {
 
         // then - verify the output
     }
-      @Test
-          public void givenRoleChanges_whenGetUnapprovedRoleChanges_thenReturnRoleChanges(){
-          RoleChange roleChange = aRoleChange().withId(1L).build();
-          roleChange.setUserModel(userModel);
-          RoleChange roleChange2 = aRoleChange().withNewRole(USERROLE.ADMIN).withId(2L).build();
-          roleChange2.getUserModel().setId(2L);
+
+    @Test
+    public void givenRoleChanges_whenGetUnapprovedRoleChanges_thenReturnRoleChanges() {
+        RoleChange roleChange = aRoleChange().withId(1L).build();
+        roleChange.setUserModel(userModel);
+        RoleChange roleChange2 = aRoleChange().withNewRole(USERROLE.ADMIN).withId(2L).build();
+        roleChange2.getUserModel().setId(2L);
 
 
-          given(roleChangeRepository.findByApprovedById(null))
-                  .willReturn(List.of(roleChange,roleChange2));
+        given(roleChangeRepository.findByApprovedById(null))
+                .willReturn(List.of(roleChange, roleChange2));
 
 
-          // when - action or the behaviour that we are going test
-          List<RoleChangeData> unapprovedRoleChanges = userService.getUnapprovedRoleChanges();
-          // then - verify the output
-          assertThat(unapprovedRoleChanges.size()).isEqualTo(2);
-          assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.PRACTITIONER)));
-          assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.ADMIN)));
-          
-          verify(roleChangeRepository, times(1)).findByApprovedById(null);
-          }
+        // when - action or the behaviour that we are going test
+        List<RoleChangeData> unapprovedRoleChanges = userService.getUnapprovedRoleChanges();
+        // then - verify the output
+        assertThat(unapprovedRoleChanges.size()).isEqualTo(2);
+        assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.PRACTITIONER)));
+        assertThat(unapprovedRoleChanges.stream().anyMatch(roleChangeData -> roleChangeData.getUserRole().equals(USERROLE.ADMIN)));
+
+        verify(roleChangeRepository, times(1)).findByApprovedById(null);
+    }
 
 
     @Test
@@ -362,5 +369,34 @@ class UserServiceImplTests {
         boolean requestStatus = userService.submitPasswordChangeRequest();
         // then - verify the output
         assertThat(requestStatus).isFalse();
+    }
+
+
+    @Test
+    public void givenPatientRegistrationRequest_whenRegisterPatient_thenReturnPatientRegistrationResponse() {
+        //given - precondition or setup
+        String usernameToRegister = "user@user.com";
+        RoleChange roleChange = aRoleChange().withNewRole(USERROLE.PATIENT).build();
+        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
+        given(userModelRepository.findByUsername(usernameToRegister)).willReturn(Optional.of(roleChange.getUserModel()));
+        PatientRegistration patientRegistration = new PatientRegistration(
+                1L,
+                roleChange.getUserModel(),
+                practitioner,
+                roleChange);
+        given(userModelRepository.findById(1L)).willReturn(Optional.of(practitioner));
+        given(roleChangeRepository.save(any(RoleChange.class))).willReturn(roleChange);
+        given(patientRegistrationRepository.save(any(PatientRegistration.class))).willReturn(patientRegistration);
+
+        // when - action or the behaviour that we are going test
+        PatientRegistrationResponse patientRegistrationResponse = userService.registerPatient(usernameToRegister, practitioner.getId());
+
+        assertThat(patientRegistrationResponse.getData().getPractitionerId()).isEqualTo(practitioner.getId());
+        assertThat(patientRegistrationResponse.getData()).isNotNull();
+        assertThat(patientRegistrationResponse.getData().getId()).isEqualTo(1L);
+        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Registration Pending");
+        assertThat(patientRegistrationResponse.getErrors()).isNull();
+
+        // then - verify the output
     }
 }
