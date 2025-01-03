@@ -20,6 +20,8 @@ import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @Transactional
+@EnableMethodSecurity
 public class UserServiceImpl implements com.cathalob.medtracker.service.UserService {
     private final UserModelRepository userModelRepository;
     private final PractitionerRoleRequestRepository practitionerRoleRequestRepository;
@@ -54,10 +57,17 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
+//    @Secured("ROLE_USER")
+    @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public List<UserModel> getPatientUserModels(String username) {
         UserModel userModel = findByLogin(username);
         if (userModel == null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
-        return userModelRepository.findByRole(USERROLE.PATIENT);
+        System.out.println("passed checks");
+        List<Long> patientUserModelIds = patientRegistrationRepository.findByPractitionerUserModel(userModel)
+                .stream()
+                .map((patientRegistration -> patientRegistration.getUserModel().getId())).toList();
+        System.out.println(patientUserModelIds);
+        return userModelRepository.findAllById(patientUserModelIds);
     }
 
     @Override
@@ -262,6 +272,10 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
 
     }
 
+    @Override
+    public List<PatientRegistration> getPatientRegistrations(String practitionerUsername) {
+        return patientRegistrationRepository.findByPractitionerUserModel(findByLogin(practitionerUsername));
+    }
 
     //    USER Role functions
     @Override

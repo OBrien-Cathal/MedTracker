@@ -48,7 +48,7 @@ class PatientsControllerApiTests {
 
     @DisplayName("Get Patients only returns UserModels with USERROLE PATIENT")
     @Test
-    @WithMockUser("user@user.com")
+    @WithMockUser(value = "user@user.com", roles = {"PRACTITIONER"})
     public void givenGetPatientRequest_whenGetPatient_thenReturnOnlyPatients() throws Exception {
         //given - precondition or setup
         List<UserModel> users = List.of(

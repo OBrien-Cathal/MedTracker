@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -398,5 +399,26 @@ class UserServiceImplTests {
         assertThat(patientRegistrationResponse.getErrors()).isNull();
 
         // then - verify the output
+    }
+@Disabled("this test should fail due to wrong role")
+    @Test
+    @WithMockUser(username = "user@user.com")
+    public void givenExistingPatient_whenGetPatientAsPractitioner_thenReturnPatientUserModels() {
+        //given - precondition or setup
+//        missing role, test still passes and should not
+        List<UserModel> patients = List.of(aUserModel().withRole(USERROLE.PATIENT).withId(1L).build());
+        UserModel practitioner = aUserModel().withId(2L).withRole(USERROLE.PRACTITIONER).build();
+        List<PatientRegistration> patientRegistrations = List.of(new PatientRegistration(1L, patients.get(0), practitioner, new RoleChange()));
+        given(userModelRepository.findByUsername(practitioner.getUsername())).willReturn(Optional.of(practitioner));
+        given(patientRegistrationRepository.findByPractitionerUserModel(practitioner)).willReturn(patientRegistrations);
+        given(userModelRepository.findAllById(patientRegistrations
+                .stream().
+                map((patientRegistration -> patientRegistration
+                        .getUserModel().getId())).toList()))
+                .willReturn(patients);
+        // when - action or the behaviour that we are going test
+        List<UserModel> patientUserModels = userService.getPatientUserModels(practitioner.getUsername());
+        // then - verify the output
+        assertThat(patientUserModels).size().isEqualTo(1);
     }
 }

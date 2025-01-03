@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.service;
 
 import com.cathalob.medtracker.exception.UserNotFound;
+import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
@@ -36,6 +37,8 @@ public interface UserService {
 
     //    Patient registration
     PatientRegistrationResponse registerPatient(String username, Long practitionerId);
+
+    List<PatientRegistration> getPatientRegistrations(String practitionerUsername);
 
     boolean submitPractitionerRoleRequest(String username);
 
