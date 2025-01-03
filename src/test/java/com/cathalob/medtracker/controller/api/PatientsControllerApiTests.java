@@ -67,6 +67,20 @@ class PatientsControllerApiTests {
                 .andExpect(jsonPath("$", Matchers.hasSize(2)))
                 .andExpect(jsonPath("$.[0].role", CoreMatchers.is("PATIENT")));
     }
+    @DisplayName("Get Patients fails with wrong role")
+    @Test
+    @WithMockUser(value = "user@user.com")
+    public void givenGetPatientRequest_whenGetPatientAsUser_thenReturnOnlyPatients() throws Exception {
+        //given - precondition or setup
+
+        // when - action or the behaviour that we are going test
+        ResultActions usersResponse = mockMvc.perform(get(patientsURL()));
+
+        // then - verify the output
+        usersResponse
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
 
     private String patientsURL() {
         return baseApiUrl + "/patients";

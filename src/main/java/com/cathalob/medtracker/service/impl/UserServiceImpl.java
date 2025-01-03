@@ -57,16 +57,13 @@ public class UserServiceImpl implements com.cathalob.medtracker.service.UserServ
     }
 
     @Override
-//    @Secured("ROLE_USER")
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public List<UserModel> getPatientUserModels(String username) {
         UserModel userModel = findByLogin(username);
         if (userModel == null || !userModel.getRole().equals(USERROLE.PRACTITIONER)) return List.of();
-        System.out.println("passed checks");
         List<Long> patientUserModelIds = patientRegistrationRepository.findByPractitionerUserModel(userModel)
                 .stream()
                 .map((patientRegistration -> patientRegistration.getUserModel().getId())).toList();
-        System.out.println(patientUserModelIds);
         return userModelRepository.findAllById(patientUserModelIds);
     }
 
