@@ -3,11 +3,10 @@ package com.cathalob.medtracker.controller.api;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.service.api.impl.AuthenticationServiceApi;
 import com.cathalob.medtracker.service.api.impl.JwtServiceImpl;
+import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
 import com.cathalob.medtracker.service.impl.CustomUserDetailsService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = PatientsControllerApi.class)
 class PatientsControllerApiTests {
     @MockBean
-    private UserService userService;
+    private PatientsServiceApi patientsService;
     @Autowired
     private MockMvc mockMvc;
     @MockBean
@@ -55,7 +54,7 @@ class PatientsControllerApiTests {
                 aUserModel().withRole(USERROLE.PATIENT).withId(1L).build(),
                 aUserModel().withRole(USERROLE.PATIENT).withId(2L).build());
 
-        BDDMockito.given(userService.getPatientUserModels("user@user.com")).willReturn(users);
+        BDDMockito.given(patientsService.getPatientUserModels("user@user.com")).willReturn(users);
         // when - action or the behaviour that we are going test
         ResultActions usersResponse = mockMvc.perform(get(patientsURL()));
 

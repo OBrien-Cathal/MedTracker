@@ -2,7 +2,7 @@ package com.cathalob.medtracker.controller.api;
 
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
-import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.service.api.impl.PatientsServiceApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
@@ -20,20 +20,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatientsControllerApi {
 
-    private final UserService userService;
+    private final PatientsServiceApi patientsService;
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     public ResponseEntity<List<UserModel>> getPatientUserModels(Authentication authentication) {
-        return ResponseEntity.ok(userService.getPatientUserModels(authentication.getName()));
+        return ResponseEntity.ok(patientsService.getPatientUserModels(authentication.getName()));
     }
     @GetMapping("/registrations")
     public ResponseEntity<List<PatientRegistration>> getPatientRegistrations(Authentication authentication) {
-        return ResponseEntity.ok(userService.getPatientRegistrations(authentication.getName()));
+        return ResponseEntity.ok(patientsService.getPatientRegistrations(authentication.getName()));
     }
-    @PostMapping("/register")
+    @PostMapping("/registrations/submit")
     public ResponseEntity<List<UserModel>> registerPatient(Authentication authentication) {
-        return ResponseEntity.ok(userService.getPatientUserModels(authentication.getName()));
+        return ResponseEntity.ok(patientsService.getPatientUserModels(authentication.getName()));
+    }
+
+    @PostMapping("/registrations/approve")
+    public ResponseEntity<List<UserModel>> approvePatientRegistration(Authentication authentication) {
+        return ResponseEntity.ok(patientsService.getPatientUserModels(authentication.getName()));
     }
 
 

@@ -3,16 +3,13 @@ package com.cathalob.medtracker.service;
 import com.cathalob.medtracker.config.SecurityConfig;
 import com.cathalob.medtracker.exception.PractitionerRoleRequestValidationFailed;
 import com.cathalob.medtracker.exception.UserNotFound;
-import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.PractitionerRoleRequest;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.RoleChangeData;
 import com.cathalob.medtracker.payload.response.GenericRequestResponse;
-import com.cathalob.medtracker.payload.response.PatientRegistrationResponse;
 import com.cathalob.medtracker.payload.response.RoleChangeStatusResponse;
-import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PractitionerRoleRequestRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.repository.UserModelRepository;
@@ -26,9 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,9 +41,6 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTests {
     @Mock
     private UserModelRepository userModelRepository;
-
-    @Mock
-    private PatientRegistrationRepository patientRegistrationRepository;
     @Mock
     private PractitionerRoleRequestRepository practitionerRoleRequestRepository;
     @Mock
@@ -378,57 +369,6 @@ class UserServiceImplTests {
     }
 
 
-    @Test
-    public void givenPatientRegistrationRequest_whenRegisterPatient_thenReturnPatientRegistrationResponse() {
-        //given - precondition or setup
-        String usernameToRegister = "user@user.com";
-        RoleChange roleChange = aRoleChange().withNewRole(USERROLE.PATIENT).build();
-        UserModel practitioner = aUserModel().withId(1L).withRole(USERROLE.PRACTITIONER).build();
-        given(userModelRepository.findByUsername(usernameToRegister)).willReturn(Optional.of(roleChange.getUserModel()));
-        PatientRegistration patientRegistration = new PatientRegistration(
-                1L,
-                roleChange.getUserModel(),
-                practitioner,
-                roleChange);
-        given(userModelRepository.findById(1L)).willReturn(Optional.of(practitioner));
-        given(roleChangeRepository.save(any(RoleChange.class))).willReturn(roleChange);
-        given(patientRegistrationRepository.save(any(PatientRegistration.class))).willReturn(patientRegistration);
 
-        // when - action or the behaviour that we are going test
-        PatientRegistrationResponse patientRegistrationResponse = userService.registerPatient(usernameToRegister, practitioner.getId());
 
-        assertThat(patientRegistrationResponse.getData().getPractitionerId()).isEqualTo(practitioner.getId());
-        assertThat(patientRegistrationResponse.getData()).isNotNull();
-        assertThat(patientRegistrationResponse.getData().getId()).isEqualTo(1L);
-        assertThat(patientRegistrationResponse.getMessage()).isEqualTo("Registration Pending");
-        assertThat(patientRegistrationResponse.getErrors()).isNull();
-
-        // then - verify the output
-    }
-    @Disabled("Move to integration tests")
-@DisplayName("Get Patients returns ")
-    @Test
-    public void givenExistingPatient_whenGetPatientAsPractitioner_thenReturnPatientUserModels() {
-        //given - precondition or setup
-//        missing role, test still passes and should not
-        List<UserModel> patients = List.of(
-                aUserModel().withRole(USERROLE.PATIENT).withId(1L).build(),
-                aUserModel().withRole(USERROLE.PATIENT).withId(2L).build());
-        UserModel practitioner = aUserModel().withId(2L).withRole(USERROLE.PRACTITIONER).build();
-        UserModel practitioner2 = aUserModel().withId(2L).withRole(USERROLE.PRACTITIONER).build();
-        List<PatientRegistration> patientRegistrations = List.of(
-                new PatientRegistration(1L, patients.get(0), practitioner, new RoleChange()),
-                new PatientRegistration(2L, patients.get(1), practitioner2, new RoleChange()));
-        given(userModelRepository.findByUsername(practitioner.getUsername())).willReturn(Optional.of(practitioner));
-        given(patientRegistrationRepository.findByPractitionerUserModel(practitioner)).willReturn(patientRegistrations.subList(0,2));
-        given(userModelRepository.findAllById(patientRegistrations
-                .stream().
-                map((patientRegistration -> patientRegistration
-                        .getUserModel().getId())).toList()))
-                .willReturn(patients);
-        // when - action or the behaviour that we are going test
-        List<UserModel> patientUserModels = userService.getPatientUserModels(practitioner.getUsername());
-        // then - verify the output
-        assertThat(patientUserModels).size().isEqualTo(2);
-    }
 }

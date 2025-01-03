@@ -18,15 +18,15 @@ public interface UserService {
 
     UserModel findByLogin(String login) throws UserNotFound;
 
+    List<UserModel> findUserModelsById(List<Long> ids);
+
+    Optional<UserModel> findUserModelById(Long id);
+
     List<UserModel> getUserModels();
-
-    List<UserModel> getPatientUserModels(String username);
-
 
     List<UserModel> getPractitionerUserModels();
 
     //  USER Role functions
-    //    NEW ROLE functions
     GenericRequestResponse submitRoleChange(USERROLE newRole, String submitterUserName);
 
     GenericRequestResponse approveRoleChange(Long roleChangeId, String approvedByUserName);
@@ -35,10 +35,6 @@ public interface UserService {
 
     List<RoleChangeData> getUnapprovedRoleChanges();
 
-    //    Patient registration
-    PatientRegistrationResponse registerPatient(String username, Long practitionerId);
-
-    List<PatientRegistration> getPatientRegistrations(String practitionerUsername);
 
     boolean submitPractitionerRoleRequest(String username);
 
