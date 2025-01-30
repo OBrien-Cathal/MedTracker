@@ -146,7 +146,6 @@ public class DoseService {
 
         DoseValidator validator = DoseValidator.aDoseValidator();
         validator.validateDoseEntry(doseToSave);
-        System.out.println(validator.getErrors());
         if (!validator.isValid()) return addDailyDoseDataRequestValidationFailed(request, validator);
 
         doseRepository.save(doseToSave);

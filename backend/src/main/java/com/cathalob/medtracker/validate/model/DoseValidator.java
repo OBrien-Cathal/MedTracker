@@ -1,9 +1,12 @@
 package com.cathalob.medtracker.validate.model;
 
+import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 import com.cathalob.medtracker.validate.Validator;
+
+import java.time.LocalDateTime;
 
 public class DoseValidator extends Validator {
 
@@ -26,6 +29,20 @@ public class DoseValidator extends Validator {
     private void validateUpdateDose(Dose dose) {
         validateDailyEvaluation(dose.getEvaluation());
         validatePrescriptionScheduleEntry(dose.getPrescriptionScheduleEntry());
+        if (!isValid()) return;
+
+        validateDoseReadingTime(dose, dose.getPrescriptionScheduleEntry().getPrescription());
+    }
+
+    private void validateDoseReadingTime(Dose dose, Prescription prescription) {
+        if (dose.getDoseTime().toLocalDate().isBefore(LocalDateTime.now().toLocalDate())) {
+            addError("Cannot submit dose readings before the schedule day");
+        }
+
+        if (dose.getDoseTime().isBefore(prescription.getBeginTime())) {
+            addError("Cannot enter dose data before prescription begin time");
+        }
+
     }
 
     private void validateDailyEvaluation(DailyEvaluation dailyEvaluation) {
@@ -33,9 +50,13 @@ public class DoseValidator extends Validator {
     }
 
     private void validatePrescriptionScheduleEntry(PrescriptionScheduleEntry prescriptionScheduleEntry) {
-        if (prescriptionScheduleEntry == null) {
-            addError("PrescriptionScheduleEntry does not exist");
-        }
+        PrescriptionScheduleEntryValidator prescriptionScheduleEntryValidator = PrescriptionScheduleEntryValidator.aPrescriptionScheduleEntryValidator();
+
+        prescriptionScheduleEntryValidator
+                .validatePrescriptionScheduleEntry(prescriptionScheduleEntry);
+        validateUsingSubValidator(prescriptionScheduleEntryValidator);
+
+
     }
 
     public static DoseValidator aDoseValidator() {

@@ -182,9 +182,10 @@ class DoseServiceTests {
         assertThat(response.getResponseInfo().isSuccessful()).isTrue();
 
     }
-@DisplayName("Entering a valid DailyDoseData will return a success response")
+
+    @DisplayName("Updating a valid DailyDoseData will return a success response")
     @Test
-    public void givenValidNewDoseDataEntry_whenAddDailyDoseData_thenReturnSuccessResponse() {
+    public void givenUpdateValidDoseDataEntry_whenAddDailyDoseData_thenReturnSuccessResponse() {
         //given - precondition or setup
         AddDailyDoseDataRequest request = AddDailyDoseDataRequest.builder()
                 .date(LocalDate.now())
@@ -210,8 +211,78 @@ class DoseServiceTests {
         AddDailyDoseDataRequestResponse response = doseService.addDailyDoseData(request, patient.getUsername());
 
         // then - verify the output
-        System.out.println(response);
         assertThat(response.getResponseInfo().isSuccessful()).isTrue();
     }
+
+    @DisplayName("Adding a valid DailyDoseData will return a success response")
+    @Test
+    public void givenAddValidNewDoseDataEntry_whenAddDailyDoseData_thenReturnFailureResponse() {
+        //given - precondition or setup
+        AddDailyDoseDataRequest request = AddDailyDoseDataRequest.builder()
+                .date(LocalDate.now())
+                .dailyDoseData(DailyDoseData.builder()
+                        .prescriptionScheduleEntryId(1L)
+                        .build())
+                .build();
+
+
+        Dose dose = aDose().build();
+
+        DailyEvaluation evaluation = dose.getEvaluation();
+        UserModel patient = evaluation.getUserModel();
+        given(userService.findByLogin(patient.getUsername()))
+                .willReturn(patient);
+        given(dailyEvaluationRepository.findById(evaluation.getDailyEvaluationIdClass()))
+                .willReturn(Optional.of(evaluation));
+        given(prescriptionScheduleEntryRepository.findById(request.getDailyDoseData().getPrescriptionScheduleEntryId()))
+                .willReturn(Optional.of(dose.getPrescriptionScheduleEntry()));
+        given(doseRepository.findByPrescriptionScheduleEntryAndEvaluation(dose.getPrescriptionScheduleEntry(), evaluation))
+                .willReturn(List.of());
+
+        // when - action or the behaviour that we are going test
+        AddDailyDoseDataRequestResponse response = doseService.addDailyDoseData(request, patient.getUsername());
+
+        // then - verify the output
+        assertThat(response.getResponseInfo().isSuccessful()).isTrue();
+    }
+
+
+
+    @DisplayName("Invalid DailyDoseData will return a failure response ")
+    @Test
+    public void givenInValidNewDoseDataEntry_whenAddDailyDoseData_thenReturnFailureResponse() {
+        //given - precondition or setup
+        AddDailyDoseDataRequest request = AddDailyDoseDataRequest.builder()
+                .date(LocalDate.now())
+                .dailyDoseData(DailyDoseData.builder()
+                        .prescriptionScheduleEntryId(1L)
+                        .build())
+                .build();
+        PrescriptionBuilder prescriptionBuilder = aPrescription().withBeginTime(LocalDateTime.now().plusDays(5));
+
+        Dose dose = aDose()
+                .withId(1L)
+                .withPrescriptionScheduleEntryBuilder(PrescriptionScheduleEntryBuilder.aPrescriptionScheduleEntry()
+                        .with(prescriptionBuilder))
+                .build();
+
+        DailyEvaluation evaluation = dose.getEvaluation();
+        UserModel patient = evaluation.getUserModel();
+        given(userService.findByLogin(patient.getUsername()))
+                .willReturn(patient);
+        given(dailyEvaluationRepository.findById(evaluation.getDailyEvaluationIdClass()))
+                .willReturn(Optional.of(evaluation));
+        given(prescriptionScheduleEntryRepository.findById(request.getDailyDoseData().getPrescriptionScheduleEntryId()))
+                .willReturn(Optional.of(dose.getPrescriptionScheduleEntry()));
+        given(doseRepository.findByPrescriptionScheduleEntryAndEvaluation(dose.getPrescriptionScheduleEntry(), evaluation)).willReturn(List.of(dose));
+
+        // when - action or the behaviour that we are going test
+        AddDailyDoseDataRequestResponse response = doseService.addDailyDoseData(request, patient.getUsername());
+
+        // then - verify the output
+        assertThat(response.getResponseInfo().isSuccessful()).isFalse();
+    }
+
+
 
 }
