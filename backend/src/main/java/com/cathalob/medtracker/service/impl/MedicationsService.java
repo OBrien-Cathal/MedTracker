@@ -36,7 +36,7 @@ public class MedicationsService {
         MedicationValidator validator = MedicationValidator.aMedicationValidator();
         validator.validateMedication(medication, existing);
 
-        if (!validator.isValid())
+        if (validator.validationFailed())
             throw new MedicationValidationException(validator.getErrors());
     }
 }

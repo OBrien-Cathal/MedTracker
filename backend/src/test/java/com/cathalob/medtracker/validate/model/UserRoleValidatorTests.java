@@ -19,7 +19,7 @@ class UserRoleValidatorTests {
         // when - action or the behaviour that we are going test
         Validator validator = new UserRoleValidator(user.getRole()).validateIsPatient();
         // then - verify the output
-        assertThat(validator.isValid()).isFalse();
+        assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
         assertThat(validator.getErrors().get(0)).isEqualTo("User has role 'USER', where only 'PATIENT' are allowed.");
     }
@@ -32,7 +32,7 @@ class UserRoleValidatorTests {
         // when - action or the behaviour that we are going test
         Validator validator = new UserRoleValidator(user.getRole()).validateIsPatientOrPractitioner();
         // then - verify the output
-        assertThat(validator.isValid()).isFalse();
+        assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
         assertThat(validator.getErrors().get(0)).isEqualTo("User has role 'ADMIN', where only 'PATIENT, PRACTITIONER' are allowed.");
     }
@@ -44,7 +44,7 @@ class UserRoleValidatorTests {
         // when - action or the behaviour that we are going test
         Validator validator = new UserRoleValidator(user.getRole()).validateIsPatientOrPractitioner();
         // then - verify the output
-        assertThat(validator.isValid()).isTrue();
+        assertThat(validator.validationFailed()).isFalse();
     }
 
 }

@@ -29,7 +29,7 @@ public class DoseValidator extends Validator {
     private void validateUpdateDose(Dose dose) {
         validateDailyEvaluation(dose.getEvaluation());
         validatePrescriptionScheduleEntry(dose.getPrescriptionScheduleEntry());
-        if (!isValid()) return;
+        if (validationFailed()) return;
 
         validateDoseReadingTime(dose, dose.getPrescriptionScheduleEntry().getPrescription());
     }

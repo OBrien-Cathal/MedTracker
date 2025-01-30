@@ -81,8 +81,8 @@ public class DoseService {
 
         UserModel patient = userService.findByLogin(username);
         UserRoleValidator userRoleValidator = new UserRoleValidator(patient.getRole());
-        if (!userRoleValidator.validateIsPatient().isValid()) {
-            System.out.println("Invalid user role");
+        userRoleValidator.validateIsPatient();
+        if (userRoleValidator.validationFailed()) {
             return GetDailyDoseDataRequestResponse.Failed(request.getDate(), userRoleValidator.getErrors());
         }
 
@@ -147,7 +147,7 @@ public class DoseService {
 
         DoseValidator validator = DoseValidator.aDoseValidator();
         validator.validateDoseEntry(doseToSave);
-        if (!validator.isValid()) throw new DailyDoseDataException(validator.getErrors());
+        if (validator.validationFailed()) throw new DailyDoseDataException(validator.getErrors());
 
         doseRepository.save(doseToSave);
 
