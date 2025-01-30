@@ -1,10 +1,12 @@
 package com.cathalob.medtracker.validate.model;
 
+import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.model.UserModel;
 
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.validate.Validator;
-import com.cathalob.medtracker.validate.model.errors.UserModelError;
+
+import java.util.List;
 
 public class UserModelValidator extends Validator {
     private final UserModel userModel;
@@ -13,44 +15,33 @@ public class UserModelValidator extends Validator {
         this.userModel = userModel;
     }
 
-    private void validateBasic() {
+    private void validateBasic(List<USERROLE> userRoles) {
         if (objectIsAbsent(userModel)) {
-            addError(UserModelError.UserNotExists());
+            addError(UserModelValidator.UserNotExists(userRoles));
         }
-    }
-
-    private void validateBasic(USERROLE expected) {
-        if (objectIsAbsent(userModel)) {
-            addError(UserModelError.UserNotExists(expected));
-        }
-
     }
 
     public void validatePatient() {
-        validateBasic(USERROLE.PATIENT);
-        if (validationFailed()) return;
-
-        UserRoleValidator userRoleValidator = userRoleValidator();
-        userRoleValidator.validateIsPatient();
-        validateUsingSubValidator(userRoleValidator);
-
+        validateRole(List.of(USERROLE.PATIENT));
     }
 
     public void validateUserOrPatient() {
-        validateBasic();
-        if (validationFailed()) return;
-
-        UserRoleValidator userRoleValidator = userRoleValidator();
-        userRoleValidator.validateIsUserOrPatient();
-        validateUsingSubValidator(userRoleValidator);
+        validateRole(List.of(USERROLE.PATIENT, USERROLE.USER));
     }
-    public void validatePractitioner() {
-        validateBasic(USERROLE.PRACTITIONER);
-        if (validationFailed()) return;
 
-        UserRoleValidator userRoleValidator = userRoleValidator();
-        userRoleValidator.validateIsPractitioner();
-        validateUsingSubValidator(userRoleValidator);
+    public void validatePractitioner() {
+        validateRole(List.of(USERROLE.PRACTITIONER));
+    }
+
+
+    private void validateRole(List<USERROLE> userRoles) {
+        validateBasic(userRoles);
+        if (validationFailed()) return;
+        try {
+            userRoleValidator().is(userRoles);
+        } catch (UserRoleValidationException e) {
+            addErrors(e.getErrors());
+        }
     }
 
     private UserRoleValidator userRoleValidator() {
@@ -59,6 +50,18 @@ public class UserModelValidator extends Validator {
 
     public static UserModelValidator ReferencedUserModelValidator(UserModel userModel) {
         return new UserModelValidator(userModel);
+    }
+
+
+
+// Error Messages
+
+    public static String UserNotExists() {
+        return "User does not exist";
+    }
+
+    public static String UserNotExists(List<USERROLE> expectedRole) {
+        return String.join(",", expectedRole.stream().map(USERROLE::name).toList()) + " User does not exist";
     }
 
 }
