@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
@@ -9,9 +10,11 @@ import com.cathalob.medtracker.payload.response.patient.ApprovePatientRegistrati
 import com.cathalob.medtracker.payload.response.patient.PatientRegistrationResponse;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.service.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,8 +25,11 @@ import java.util.Optional;
 
 import static com.cathalob.medtracker.testdata.UserModelBuilder.aUserModel;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @Import(SecurityConfig.class)
@@ -96,12 +102,10 @@ class PatientsServiceTests {
         given(userService.findUserModelById(practitioner.getId())).willReturn(Optional.empty());
 
         // when - action or the behaviour that we are going test
-        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+        assertThrows(PatientRegistrationException.class, () -> patientsService.registerPatient(toRegister.getUsername(), practitioner.getId()));
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
-        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isNotEmpty();
+        verify(patientRegistrationRepository, never()).save(any(PatientRegistration.class));
     }
 
 
@@ -117,12 +121,10 @@ class PatientsServiceTests {
         given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner)).willReturn(List.of(patientRegistration));
 
         // when - action or the behaviour that we are going test
-        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+        assertThrows(PatientRegistrationException.class, () -> patientsService.registerPatient(toRegister.getUsername(), practitioner.getId()));
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
-        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isNotEmpty();
+        verify(patientRegistrationRepository, never()).save(any(PatientRegistration.class));
     }
 
     @DisplayName("Fail validation: (registerPatient) - user to register has wrong role")
@@ -137,12 +139,11 @@ class PatientsServiceTests {
 //        given(patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner)).willReturn(List.of(patientRegistration));
 
         // when - action or the behaviour that we are going test
-        PatientRegistrationResponse patientRegistrationResponse = patientsService.registerPatient(toRegister.getUsername(), practitioner.getId());
+        assertThrows(PatientRegistrationException.class, () -> patientsService.registerPatient(toRegister.getUsername(), practitioner.getId()));
+
 
         // then - verify the output
-        assertThat(patientRegistrationResponse.getResponseInfo().isSuccessful()).isFalse();
-        assertThat(patientRegistrationResponse.getResponseInfo().getMessage()).isEqualTo("Failed");
-        assertThat(patientRegistrationResponse.getResponseInfo().getErrors()).isNotEmpty();
+        verify(patientRegistrationRepository, never()).save(any(PatientRegistration.class));
     }
 
 

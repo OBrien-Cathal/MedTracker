@@ -1,7 +1,11 @@
 package com.cathalob.medtracker.exception.validation;
 
-public class PatientRegistrationException extends ValidationException{
-    public PatientRegistrationException(String message) {
-        super(message);
+import java.util.List;
+
+public class PatientRegistrationException extends ValidatorException{
+
+
+    public PatientRegistrationException(List<String> errors) {
+        super(errors);
     }
 }

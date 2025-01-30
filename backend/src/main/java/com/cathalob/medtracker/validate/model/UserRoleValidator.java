@@ -15,21 +15,25 @@ public class UserRoleValidator extends Validator {
         this.userRole = userRole;
     }
 
-    public Validator validateIsPatient() {
-        return validateRoleInAllowed(List.of(USERROLE.PATIENT));
+    public void validateIsPatient() {
+        validateRoleInAllowed(List.of(USERROLE.PATIENT));
 
+    }
+
+    public void validateIsUserOrPatient() {
+        validateRoleInAllowed(List.of(USERROLE.USER, USERROLE.PATIENT));
     }
 
     public Validator validateIsAdmin() {
         return validateRoleInAllowed(List.of(USERROLE.ADMIN));
     }
 
-    public Validator validateIsPractitioner() {
-        return validateRoleInAllowed(List.of(USERROLE.PRACTITIONER));
+    public void validateIsPractitioner() {
+        validateRoleInAllowed(List.of(USERROLE.PRACTITIONER));
     }
 
-    public Validator validateIsPatientOrPractitioner() {
-        return validateRoleInAllowed(List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER));
+    public void validateIsPatientOrPractitioner() {
+        validateRoleInAllowed(List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER));
     }
 
     private Validator validateRoleInAllowed(List<USERROLE> allowedRoles) {

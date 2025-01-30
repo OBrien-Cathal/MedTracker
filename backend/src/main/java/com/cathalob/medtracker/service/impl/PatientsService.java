@@ -15,6 +15,7 @@ import com.cathalob.medtracker.payload.response.patient.PatientRegistrationRespo
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
+import com.cathalob.medtracker.validate.model.RegisterPatientValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,35 +51,20 @@ public class PatientsService {
     }
 
 
-    public PatientRegistrationResponse registerPatient(String username, Long practitionerId) {
+    public PatientRegistrationResponse registerPatient(String username, Long practitionerId) throws PatientRegistrationException {
         UserModel toRegister = userService.findByLogin(username);
         Optional<UserModel> maybePractitioner = userService.findUserModelById(practitionerId);
-
         UserModel practitioner = maybePractitioner.orElse(null);
-        try {
-            validatePatientRegistration(toRegister, practitioner);
-        } catch (Exception e) {
-            return PatientRegistrationResponse.Failed(List.of(e.getMessage()));
-        }
 
         PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
+
+        RegisterPatientValidator val = RegisterPatientValidator.aRegisterPatientValidator();
+        val.validateRegisterPatient(patientRegistration, patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner));
+        if (val.validationFailed()) throw new PatientRegistrationException(val.getErrors());
+
         PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
 
         return PatientRegistrationResponse.Success(saved);
-    }
-
-    private void validatePatientRegistration(UserModel toRegister, UserModel practitioner) {
-        if (practitioner == null) {
-            throw new PatientRegistrationException("Practitioner does not exist");
-        }
-        if (!List.of(USERROLE.USER, USERROLE.PATIENT).contains(toRegister.getRole())) {
-            throw new PatientRegistrationException("User does not have allowed role to register as a patient (allowed: USER, PATIENT), current: " +
-                    toRegister.getRole());
-        }
-        List<PatientRegistration> existingReg = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner);
-        if (!existingReg.isEmpty()) {
-            throw new PatientRegistrationException("Registration for practitioner and patient already exists");
-        }
     }
 
 

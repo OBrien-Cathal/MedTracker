@@ -17,7 +17,8 @@ class UserRoleValidatorTests {
         //given - precondition or setup
         UserModel user = UserModelBuilder.aUserModel().build();
         // when - action or the behaviour that we are going test
-        Validator validator = new UserRoleValidator(user.getRole()).validateIsPatient();
+        UserRoleValidator validator = new UserRoleValidator(user.getRole());
+        validator.validateIsPatient();
         // then - verify the output
         assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
@@ -30,19 +31,22 @@ class UserRoleValidatorTests {
         //given - precondition or setup
         UserModel user = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN).build();
         // when - action or the behaviour that we are going test
-        Validator validator = new UserRoleValidator(user.getRole()).validateIsPatientOrPractitioner();
+        UserRoleValidator validator = new UserRoleValidator(user.getRole());
+        validator.validateIsPatientOrPractitioner();
         // then - verify the output
         assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
         assertThat(validator.getErrors().get(0)).isEqualTo("User has role 'ADMIN', where only 'PATIENT, PRACTITIONER' are allowed.");
     }
+
     @DisplayName("PRACTITIONER role IS valid patient or practitioner")
     @Test
     public void givenUSERROLE_PRACTITIONER_whenALLOWED_PATIENT_PRACTITIONER_thenReturnError() {
         //given - precondition or setup
         UserModel user = UserModelBuilder.aUserModel().withRole(USERROLE.PRACTITIONER).build();
         // when - action or the behaviour that we are going test
-        Validator validator = new UserRoleValidator(user.getRole()).validateIsPatientOrPractitioner();
+        UserRoleValidator validator = new UserRoleValidator(user.getRole());
+        validator.validateIsPatientOrPractitioner();
         // then - verify the output
         assertThat(validator.validationFailed()).isFalse();
     }

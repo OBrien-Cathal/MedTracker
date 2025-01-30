@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.controller;
 
+import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
 import com.cathalob.medtracker.payload.request.patient.ApprovePatientRegistrationRequest;
@@ -40,7 +41,14 @@ public class PatientsController {
     public ResponseEntity<PatientRegistrationResponse> registerPatient(
             Authentication authentication,
             @RequestBody PatientRegistrationRequest request) {
-        return ResponseEntity.ok(patientsService.registerPatient(authentication.getName(), request.getPractitionerId()));
+        PatientRegistrationResponse response;
+        try {
+            response = patientsService.registerPatient(authentication.getName(), request.getPractitionerId());
+        } catch (PatientRegistrationException e) {
+            response = PatientRegistrationResponse.Failed(e.getErrors());
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/registrations/approve")
