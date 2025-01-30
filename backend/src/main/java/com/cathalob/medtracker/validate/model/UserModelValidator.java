@@ -14,7 +14,7 @@ public class UserModelValidator extends Validator {
 
 
     public void validatePatient() {
-        if (!validateExists(userModel)) {
+        if (objectIsAbsent(userModel)) {
             addError(UserModelError.UserNotExists());
             return;
         }

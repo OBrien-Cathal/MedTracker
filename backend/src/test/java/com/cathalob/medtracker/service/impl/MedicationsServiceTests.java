@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.exception.validation.medication.MedicationValidationException;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.payload.response.AddMedicationResponse;
 import com.cathalob.medtracker.repository.MedicationRepository;
@@ -17,7 +18,10 @@ import java.util.List;
 
 import static com.cathalob.medtracker.testdata.MedicationBuilder.aMedication;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @Import(SecurityConfig.class)
@@ -48,10 +52,10 @@ class MedicationsServiceTests {
         given(medicationRepository.findByName(medication.getName())).willReturn(List.of(medication));
 
         // when - action or the behaviour that we are going test
-        AddMedicationResponse requestResponse = medicationsService.addMedication(medication);
+        assertThrows(MedicationValidationException.class, () -> medicationsService.addMedication(medication));
+
         // then - verify the output
-        Assertions.assertThat(requestResponse.getResponseInfo().isSuccessful()).isFalse();
-        Assertions.assertThat(requestResponse.getResponseInfo().getErrors()).isNotEmpty();
+        verify(medicationRepository, never()).save(medication);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.cathalob.medtracker.validate;
 
-import com.cathalob.medtracker.validate.model.errors.UserModelError;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -18,6 +17,10 @@ public abstract class Validator {
         return errors.isEmpty();
     }
 
+    public boolean validationFailed() {
+        return !isValid();
+    }
+
     protected void addError(String error) {
         this.errors.add(error);
     }
@@ -33,8 +36,8 @@ public abstract class Validator {
         }
     }
 
-    protected boolean validateExists(Object object) {
-        return object != null;
+    protected boolean objectIsAbsent(Object object) {
+        return object == null;
     }
 
 }

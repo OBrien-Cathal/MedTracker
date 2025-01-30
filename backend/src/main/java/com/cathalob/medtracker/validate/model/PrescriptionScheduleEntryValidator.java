@@ -11,7 +11,7 @@ public class PrescriptionScheduleEntryValidator extends Validator {
     }
 
     public void validatePrescriptionScheduleEntry(PrescriptionScheduleEntry prescriptionScheduleEntry) {
-        if (!validateExists(prescriptionScheduleEntry)) {
+        if (objectIsAbsent(prescriptionScheduleEntry)) {
             addError("PrescriptionScheduleEntry does not exist");
             return;
         }

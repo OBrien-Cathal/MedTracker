@@ -9,7 +9,7 @@ public class PrescriptionValidator extends Validator {
     }
 
     public void validatePrescription(Prescription prescription) {
-        if (!validateExists(prescription)) {
+        if (objectIsAbsent(prescription)) {
             addError("Prescription does not exist");
         }
     }

@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.controller;
 
+import com.cathalob.medtracker.exception.validation.medication.MedicationValidationException;
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.payload.response.AddMedicationResponse;
 import com.cathalob.medtracker.service.impl.MedicationsService;
@@ -27,7 +28,12 @@ public class MedicationsController {
     @PreAuthorize("hasRole('ROLE_PRACTITIONER')")
     @PostMapping("/add")
     public ResponseEntity<AddMedicationResponse> addMedication(@RequestBody @Valid Medication medication) {
-        AddMedicationResponse requestResponse = medicationsService.addMedication(medication);
-        return ResponseEntity.ok(requestResponse);
+        AddMedicationResponse response;
+        try {
+            response = medicationsService.addMedication(medication);
+        } catch (MedicationValidationException exception) {
+           response = AddMedicationResponse.Failed(List.of(exception.getMessage()));
+        }
+        return ResponseEntity.ok(response);
     }
 }

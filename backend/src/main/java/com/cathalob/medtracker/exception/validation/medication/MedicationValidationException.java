@@ -1,9 +1,13 @@
 package com.cathalob.medtracker.exception.validation.medication;
 
-import com.cathalob.medtracker.exception.validation.ValidationException;
 
-public class MedicationValidationException extends ValidationException {
-    public MedicationValidationException(String message) {
-        super(message);
+import com.cathalob.medtracker.exception.validation.ValidatorException;
+
+import java.util.List;
+
+public class MedicationValidationException extends ValidatorException {
+
+    public MedicationValidationException(List<String> errors) {
+        super(errors);
     }
 }
