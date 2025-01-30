@@ -2,12 +2,11 @@ package com.cathalob.medtracker.validate.model;
 
 import com.cathalob.medtracker.model.PatientRegistration;
 
-import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.validate.Validator;
 
 import java.util.List;
 
-public class RegisterPatientValidator extends Validator {
+public class PatientRegistrationValidator extends Validator {
 
     public void validateRegisterPatient(PatientRegistration patientRegistration, List<PatientRegistration> existing) {
         if (objectIsAbsent(patientRegistration.getUserModel())) {
@@ -29,8 +28,8 @@ public class RegisterPatientValidator extends Validator {
     }
 
 
-    public static RegisterPatientValidator aRegisterPatientValidator() {
-        return new RegisterPatientValidator();
+    public static PatientRegistrationValidator aRegisterPatientValidator() {
+        return new PatientRegistrationValidator();
     }
 
 }

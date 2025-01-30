@@ -15,7 +15,7 @@ import com.cathalob.medtracker.payload.response.patient.PatientRegistrationRespo
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.RoleChangeRepository;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.validate.model.RegisterPatientValidator;
+import com.cathalob.medtracker.validate.model.PatientRegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,7 +58,7 @@ public class PatientsService {
 
         PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
 
-        RegisterPatientValidator val = RegisterPatientValidator.aRegisterPatientValidator();
+        PatientRegistrationValidator val = PatientRegistrationValidator.aRegisterPatientValidator();
         val.validateRegisterPatient(patientRegistration, patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner));
         if (val.validationFailed()) throw new PatientRegistrationException(val.getErrors());
 
