@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.controller;
 
+import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.payload.request.patient.*;
 import com.cathalob.medtracker.payload.response.AddDailyDoseDataRequestResponse;
 import com.cathalob.medtracker.payload.response.GetDailyDoseDataRequestResponse;
@@ -46,7 +47,14 @@ public class DosesController {
     public ResponseEntity<AddDailyDoseDataRequestResponse> addDailyDoseData(
             @RequestBody AddDailyDoseDataRequest request,
             Authentication authentication) {
-        return ResponseEntity.ok(doseService.addDailyDoseData(request, authentication.getName()));
+        AddDailyDoseDataRequestResponse response;
+        try {
+            response = (doseService.addDailyDoseData(request, authentication.getName()));
+
+        } catch (DailyDoseDataException e) {
+            response = (AddDailyDoseDataRequestResponse.Failed(request.getDate(), e.getErrors()));
+        }
+        return ResponseEntity.ok(response);
     }
 
 

@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.service.impl;
 
 import com.cathalob.medtracker.config.SecurityConfig;
+import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
 import com.cathalob.medtracker.model.enums.USERROLE;
@@ -42,7 +43,10 @@ import static com.cathalob.medtracker.testdata.DoseBuilder.aDose;
 import static com.cathalob.medtracker.testdata.PrescriptionBuilder.aPrescription;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @Import(SecurityConfig.class)
@@ -247,8 +251,7 @@ class DoseServiceTests {
     }
 
 
-
-    @DisplayName("Invalid DailyDoseData will return a failure response ")
+    @DisplayName("Invalid DailyDoseData will throw DailyDoseDataException")
     @Test
     public void givenInValidNewDoseDataEntry_whenAddDailyDoseData_thenReturnFailureResponse() {
         //given - precondition or setup
@@ -277,12 +280,13 @@ class DoseServiceTests {
         given(doseRepository.findByPrescriptionScheduleEntryAndEvaluation(dose.getPrescriptionScheduleEntry(), evaluation)).willReturn(List.of(dose));
 
         // when - action or the behaviour that we are going test
-        AddDailyDoseDataRequestResponse response = doseService.addDailyDoseData(request, patient.getUsername());
+        assertThrows(DailyDoseDataException.class, () -> doseService.addDailyDoseData(request, patient.getUsername()));
+//        AddDailyDoseDataRequestResponse response = doseService.addDailyDoseData(request, patient.getUsername());
 
         // then - verify the output
-        assertThat(response.getResponseInfo().isSuccessful()).isFalse();
+//        assertThat(response.getResponseInfo().isSuccessful()).isFalse();
+        verify(doseRepository, never()).save(any(Dose.class));
     }
-
 
 
 }

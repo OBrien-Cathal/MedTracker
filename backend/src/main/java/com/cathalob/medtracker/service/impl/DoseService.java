@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.service.impl;
 
+import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.mapper.DoseMapper;
 import com.cathalob.medtracker.model.UserModel;
@@ -123,7 +124,7 @@ public class DoseService {
         return GetDailyDoseDataRequestResponse.Success(LocalDate.now(), doseData);
     }
 
-    public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) {
+    public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) throws DailyDoseDataException{
         UserModel patient = userService.findByLogin(username);
 
         DailyEvaluation dailyEvaluationPlaceholder = DailyEvaluationMapper.ToDailyEvaluation(request.getDate(), patient);
@@ -146,16 +147,11 @@ public class DoseService {
 
         DoseValidator validator = DoseValidator.aDoseValidator();
         validator.validateDoseEntry(doseToSave);
-        if (!validator.isValid()) return addDailyDoseDataRequestValidationFailed(request, validator);
+        if (!validator.isValid()) throw new DailyDoseDataException(validator.getErrors());
 
         doseRepository.save(doseToSave);
 
         return AddDailyDoseDataRequestResponse.Success(LocalDate.now(), doseToSave.getId());
-    }
-
-
-    private AddDailyDoseDataRequestResponse addDailyDoseDataRequestValidationFailed(AddDailyDoseDataRequest request, Validator validator) {
-        return AddDailyDoseDataRequestResponse.Failed(request.getDate(), validator.getErrors());
     }
 
     private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient) {
