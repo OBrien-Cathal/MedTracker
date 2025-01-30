@@ -3,10 +3,10 @@ package com.cathalob.medtracker.service.impl;
 import com.cathalob.medtracker.exception.validation.PatientRegistrationException;
 import com.cathalob.medtracker.fileupload.BloodPressureFileImporter;
 import com.cathalob.medtracker.fileupload.DoseFileImporter;
+import com.cathalob.medtracker.mapper.PatientRegistrationMapper;
 import com.cathalob.medtracker.model.PatientRegistration;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
-import com.cathalob.medtracker.model.factories.PatientRegistrationFactory;
 import com.cathalob.medtracker.model.tracking.BloodPressureReading;
 import com.cathalob.medtracker.model.userroles.RoleChange;
 import com.cathalob.medtracker.payload.data.PatientRegistrationData;
@@ -56,7 +56,7 @@ public class PatientsService {
         Optional<UserModel> maybePractitioner = userService.findUserModelById(practitionerId);
         UserModel practitioner = maybePractitioner.orElse(null);
 
-        PatientRegistration patientRegistration = PatientRegistrationFactory.PatientRegistration(toRegister, practitioner, false);
+        PatientRegistration patientRegistration = PatientRegistrationMapper.PatientRegistration(toRegister, practitioner);
 
         PatientRegistrationValidator val = PatientRegistrationValidator.aRegisterPatientValidator();
         val.validateRegisterPatient(patientRegistration, patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner));
