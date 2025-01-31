@@ -11,7 +11,6 @@ import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
-import com.cathalob.medtracker.payload.data.DailyMedicationDoseData;
 import com.cathalob.medtracker.payload.data.GraphData;
 import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 import com.cathalob.medtracker.payload.request.patient.GetDailyDoseDataRequest;
@@ -86,7 +85,8 @@ public class DoseService {
 
         List<Prescription> prescriptionsValidOnRequestDate = prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate());
 
-        List<PrescriptionScheduleEntry> prescriptionScheduleEntries = prescriptionScheduleEntryRepository.findByPrescriptions(prescriptionsValidOnRequestDate);
+        List<PrescriptionScheduleEntry> prescriptionScheduleEntries = prescriptionScheduleEntryRepository
+                .findByPrescriptionIds(prescriptionsValidOnRequestDate.stream().map(Prescription::getId).toList());
 
         return GetDailyDoseDataRequestResponse.Success(LocalDate.now(),
                 doseMapper.dailyMedicationDoseDataList(prescriptionScheduleEntries, doseRepository.findByEvaluation(dailyEvaluation)));

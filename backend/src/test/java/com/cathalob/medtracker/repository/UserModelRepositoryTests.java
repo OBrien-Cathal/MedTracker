@@ -48,12 +48,17 @@ class UserModelRepositoryTests {
 
     @Disabled("Select a set of user models based on a collection of ids")
     @Test
-    public void given_when_then() {
+    public void givenListOfIds_whenFindByUserModelId_thenReturnFoundUserModels() {
         //given - precondition or setup
+        UserModel userModel = aUserModel().build();
 
+//        when
+        UserModel saved = userModelRepository.save(userModel);
         // when - action or the behaviour that we are going test
+        List<UserModel> byUserModelIds = userModelRepository.findByUserModelIds(List.of(saved.getId()));
 
         // then - verify the output
+        assertThat(byUserModelIds.isEmpty()).isFalse();
     }
 
     @Test

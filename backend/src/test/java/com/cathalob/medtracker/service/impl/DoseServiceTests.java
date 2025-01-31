@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Import;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -169,11 +168,12 @@ class DoseServiceTests {
         given(dailyEvaluationRepository.save(evaluation))
                 .willReturn(evaluation);
         given(prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate()))
-                .willReturn(List.of(prescription1,prescription2));
+                .willReturn(List.of(prescription1, prescription2));
         given(doseRepository.findByEvaluation(evaluation))
                 .willReturn(existingDoses);
 
-        given(prescriptionScheduleEntryRepository.findByPrescriptions(List.of(prescription1, prescription2)))
+        given(prescriptionScheduleEntryRepository.findByPrescriptionIds(
+                Stream.of(prescription1, prescription2).map(Prescription::getId).toList()))
                 .willReturn(pse);
 
         given(doseMapper.dailyMedicationDoseDataList(pse, existingDoses))
@@ -186,6 +186,7 @@ class DoseServiceTests {
         // then - verify the output
         assertThat(response).isNotNull();
         assertThat(response.getMedicationDoses().isEmpty()).isFalse();
+        assertThat(response.getMedicationDoses().size()).isEqualTo(2);
         assertThat(response.getMedicationDoses().stream()
                 .allMatch(dailyMedicationDoseData ->
                         dailyMedicationDoseData.getDoses().stream()
@@ -248,10 +249,10 @@ class DoseServiceTests {
         given(dailyEvaluationRepository.save(evaluation))
                 .willReturn(evaluation);
         given(prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate()))
-                .willReturn(List.of(prescription1,prescription2));
+                .willReturn(List.of(prescription1, prescription2));
         given(doseRepository.findByEvaluation(evaluation))
                 .willReturn(List.of());
-        given(prescriptionScheduleEntryRepository.findByPrescriptions(List.of(prescription1, prescription2)))
+        given(prescriptionScheduleEntryRepository.findByPrescriptionIds(Stream.of(prescription1, prescription2).map(Prescription::getId).toList()))
                 .willReturn(pse);
 
         given(doseMapper.dailyMedicationDoseDataList(pse, List.of()))
@@ -265,6 +266,7 @@ class DoseServiceTests {
         // then - verify the output
         assertThat(response).isNotNull();
         assertThat(response.getMedicationDoses().isEmpty()).isFalse();
+        assertThat(response.getMedicationDoses().size()).isEqualTo(2);
         assertThat(response.getMedicationDoses().stream()
                 .allMatch(dailyMedicationDoseData ->
                         dailyMedicationDoseData.getDoses().stream()

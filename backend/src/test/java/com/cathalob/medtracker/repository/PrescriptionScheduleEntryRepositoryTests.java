@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
+
 import static com.cathalob.medtracker.testdata.PrescriptionScheduleEntryBuilder.aPrescriptionScheduleEntry;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,5 +36,21 @@ class PrescriptionScheduleEntryRepositoryTests {
 
         PrescriptionScheduleEntry saved = prescriptionScheduleEntryRepository.save(prescriptionScheduleEntry);
         assertThat(saved.getId()).isGreaterThan(0);
+    }
+    @Test
+    public void givenPrescriptionScheduleEntry_whenFindByPrescriptionIds_thenReturnSavedPrescriptionScheduleEntries() {
+        //        given
+        PrescriptionScheduleEntry prescriptionScheduleEntry = aPrescriptionScheduleEntry().build();
+        Prescription prescription = prescriptionScheduleEntry.getPrescription();
+        testEntityManager.persist(prescription.getPatient());
+        testEntityManager.persist(prescription.getPractitioner());
+        testEntityManager.persist(prescription.getMedication());
+        testEntityManager.persist(prescription);
+        testEntityManager.persist(prescriptionScheduleEntry);
+//    when
+        List<PrescriptionScheduleEntry> found = prescriptionScheduleEntryRepository.findByPrescriptionIds(List.of(prescription.getId()));
+        assertThat(found.isEmpty()).isFalse();
+
+
     }
 }
