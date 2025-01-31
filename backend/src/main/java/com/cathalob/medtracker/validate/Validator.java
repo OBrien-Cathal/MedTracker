@@ -30,11 +30,8 @@ public abstract class Validator {
         this.errors.addAll(errors);
     }
 
-
-    protected void validateUsingSubValidator(Validator subValidator) {
-        if (!subValidator.isValid()) {
-            addErrors(subValidator.getErrors());
-        }
+    protected String objectNotPresentMessage(){
+        return objectToValidateName();
     }
 
     protected String objectToValidateName() {
@@ -50,7 +47,7 @@ public abstract class Validator {
 
     protected void validateObjectPresence(Object objectToValidate) {
         try {
-            ObjectPresenceValidator.aObjectPresenceValidator(objectToValidate, objectToValidateName()).validate();
+            ObjectPresenceValidator.aObjectPresenceValidator(objectToValidate, objectNotPresentMessage()).validate();
         } catch (ObjectPresenceValidatorException e) {
             addErrors(e.getErrors());
             cannotContinueValidation();

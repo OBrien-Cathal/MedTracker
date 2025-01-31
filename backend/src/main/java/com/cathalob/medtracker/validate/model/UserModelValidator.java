@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.validate.model;
 
+import com.cathalob.medtracker.exception.validation.UserModelValidationException;
 import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.model.UserModel;
 
@@ -10,53 +11,23 @@ import java.util.List;
 
 public class UserModelValidator extends Validator {
     protected final UserModel userModel;
+    protected final List<USERROLE> allowedRoles;
 
-    public UserModelValidator(UserModel userModel) {
+    public UserModelValidator(UserModel userModel, List<USERROLE> allowedRoles) {
         this.userModel = userModel;
-    }
-
-    private void validateBasic(List<USERROLE> userRoles) {
-        if (objectIsAbsent(userModel)) {
-            addError(UserModelValidator.UserNotExists(userRoles));
-        }
+        this.allowedRoles = allowedRoles;
     }
 
     protected void validateRole() {
-    }
-
-    public void validatePatient() {
-        validateRole(List.of(USERROLE.PATIENT));
-    }
-
-    public void validateUserOrPatient() {
-        validateRole(List.of(USERROLE.PATIENT, USERROLE.USER));
-    }
-
-    public void validatePractitioner() {
-        validateRole(List.of(USERROLE.PRACTITIONER));
-    }
-
-
-    private void validateRole(List<USERROLE> userRoles) {
-        validateBasic(userRoles);
-        if (validationFailed()) return;
         try {
-            userRoleValidator(userRoles).validate();
+            new UserRoleValidator(userModel.getRole(), allowedRoles).validate();
         } catch (UserRoleValidationException e) {
             addErrors(e.getErrors());
         }
     }
 
-    private UserRoleValidator userRoleValidator(List<USERROLE> allowedRoles) {
-        return new UserRoleValidator(userModel.getRole(), allowedRoles);
-    }
-
 
 //    Static access
-
-    public static UserModelValidator ReferencedUserModelValidator(UserModel userModel) {
-        return new UserModelValidator(userModel);
-    }
 
     public static PractitionerUserModelValidator PractitionerUserModelValidator(UserModel userModel) {
         return new PractitionerUserModelValidator(userModel);
@@ -66,12 +37,16 @@ public class UserModelValidator extends Validator {
         return new PatientUserModelValidator(userModel);
     }
 
+    public static PatientAndUserUserModelValidator PatientAndUserUserModelValidator(UserModel userModel) {
+        return new PatientAndUserUserModelValidator(userModel);
+    }
+
 
 // Error Messages
-
-    public static String UserNotExists() {
-        return "User does not exist";
+    protected String objectNotPresentMessage() {
+        return UserNotExists(allowedRoles);
     }
+
 
     public static String UserNotExists(List<USERROLE> expectedRole) {
         return String.join(",", expectedRole.stream().map(USERROLE::name).toList()) + " User does not exist";
@@ -87,6 +62,6 @@ public class UserModelValidator extends Validator {
 
     @Override
     protected void raiseValidationException() {
-        throw new UserRoleValidationException(getErrors());
+        throw new UserModelValidationException(getErrors());
     }
 }

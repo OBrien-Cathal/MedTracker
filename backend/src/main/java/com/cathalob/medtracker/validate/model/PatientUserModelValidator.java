@@ -7,10 +7,14 @@ import java.util.List;
 
 public class PatientUserModelValidator extends UserModelValidator{
     public PatientUserModelValidator(UserModel userModel) {
-        super(userModel);
+        super(userModel, allowedRoles() );
     }
 
-    protected void validateRole() {
-        new UserRoleValidator(userModel.getRole(), List.of(USERROLE.PATIENT));
+
+    protected static List<USERROLE> allowedRoles(){
+        return List.of(USERROLE.PATIENT);
     }
+
+
+
 }

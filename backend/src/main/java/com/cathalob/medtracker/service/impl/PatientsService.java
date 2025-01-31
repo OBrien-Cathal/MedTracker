@@ -58,9 +58,10 @@ public class PatientsService {
 
         PatientRegistration patientRegistration = PatientRegistrationMapper.PatientRegistration(toRegister, practitioner);
 
-        PatientRegistrationValidator val = PatientRegistrationValidator.aRegisterPatientValidator();
-        val.validateRegisterPatient(patientRegistration, patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner));
-        if (val.validationFailed()) throw new PatientRegistrationException(val.getErrors());
+        List<PatientRegistration> existingRegistration = patientRegistrationRepository.findByUserModelAndPractitionerUserModel(toRegister, practitioner);
+        PatientRegistrationValidator.aRegisterPatientValidator(
+                patientRegistration, existingRegistration.isEmpty() ? null : existingRegistration.get(0)).validate();
+
 
         PatientRegistration saved = patientRegistrationRepository.save(patientRegistration);
 

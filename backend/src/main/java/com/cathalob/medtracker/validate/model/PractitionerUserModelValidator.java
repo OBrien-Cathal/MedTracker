@@ -6,16 +6,14 @@ import com.cathalob.medtracker.model.enums.USERROLE;
 import java.util.List;
 
 public class PractitionerUserModelValidator extends UserModelValidator {
-
-
     public PractitionerUserModelValidator(UserModel userModel) {
-        super(userModel);
+        super(userModel, allowedRoles());
     }
 
-    protected void validateRole() {
-        new UserRoleValidator(userModel.getRole(), List.of(USERROLE.PRACTITIONER));
-
+    protected static List<USERROLE> allowedRoles() {
+        return List.of(USERROLE.PRACTITIONER);
     }
+
 
 }
 
