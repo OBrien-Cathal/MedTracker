@@ -10,6 +10,7 @@ import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,15 +69,6 @@ public class DoseMapper {
     }
 
 
-    public DailyMedicationDoseData dailyMedicationDoseData(Prescription prescription,
-                                                           List<DailyDoseData> doses) {
-        return DoseMapper.DailyMedicationDoseData(prescription, doses);
-    }
-
-    public DailyDoseData doseData(PrescriptionScheduleEntry prescriptionScheduleEntry, Dose dose) {
-        return DoseMapper.DoseData(prescriptionScheduleEntry, dose);
-    }
-
     public List<DailyMedicationDoseData> dailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, Map<Long, Dose> doseByPseId) {
         return DoseMapper.DailyMedicationDoseDataList(pseList, doseByPseId);
     }
@@ -91,7 +83,9 @@ public class DoseMapper {
             if (dailyDoseDataByPrescription.containsKey(pse.getPrescription())) {
                 dailyDoseDataByPrescription.get(pse.getPrescription()).add(newDailyDoseData);
             } else {
-                dailyDoseDataByPrescription.put(pse.getPrescription(), List.of(newDailyDoseData));
+                ArrayList<DailyDoseData> list = new ArrayList<>();
+                list.add(newDailyDoseData);
+                dailyDoseDataByPrescription.put(pse.getPrescription(), list);
             }
         }
 

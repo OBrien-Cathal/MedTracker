@@ -162,16 +162,41 @@ class DoseServiceTests {
         GetDailyDoseDataRequest request = GetDailyDoseDataRequest.builder().date(requestDate).build();
 
         UserModelBuilder patientBuilder = UserModelBuilder.aUserModel().withRole(USERROLE.PATIENT);
-        PrescriptionBuilder prescriptionBuilder = aPrescription().withId(1L)
-                .withPatient(patientBuilder)
-                .withBeginTime(LocalDateTime.of(requestDate.plusDays(-1), LocalTime.now()));
-        List<PrescriptionScheduleEntry> pse = List.of(
-                aPrescriptionScheduleEntry().with(prescriptionBuilder).withId(1L).build(),
-                aPrescriptionScheduleEntry().with(prescriptionBuilder).withId(2L).build());
-
-        Prescription prescription = prescriptionBuilder.build();
-        DailyEvaluation evaluation = aDailyEvaluation().withRecordDate(requestDate).with(patientBuilder).build();
         UserModel patient = patientBuilder.build();
+
+        MedicationBuilder med1 = MedicationBuilder.aMedication().withId(1L).withName("Med1");
+        MedicationBuilder med2 = MedicationBuilder.aMedication().withId(2L).withName("Med2");
+
+        Prescription prescription1 = aPrescription().withId(1L)
+                .with(med1)
+                .withBeginTime(LocalDateTime.of(requestDate.plusDays(-1), LocalTime.now()))
+                .build();
+        Prescription prescription2 = aPrescription().withId(2L)
+                .with(med2)
+                .withBeginTime(LocalDateTime.of(requestDate.plusDays(-1), LocalTime.now()))
+                .build();
+
+        prescription1.setPatient(patient);
+        prescription2.setPatient(patient);
+
+        PrescriptionScheduleEntry entryP1e1 = aPrescriptionScheduleEntry().withDayStage(DAYSTAGE.WAKEUP).withId(1L).build();
+        entryP1e1.setPrescription(prescription1);
+        PrescriptionScheduleEntry entryP1e2 = aPrescriptionScheduleEntry().withDayStage(DAYSTAGE.BEDTIME).withId(2L).build();
+        entryP1e2.setPrescription(prescription1);
+
+        PrescriptionScheduleEntry entryP2E3 = aPrescriptionScheduleEntry().withDayStage(DAYSTAGE.WAKEUP).withId(3L).build();
+        entryP2E3.setPrescription(prescription2);
+        PrescriptionScheduleEntry entryP2e4 = aPrescriptionScheduleEntry().withDayStage(DAYSTAGE.BEDTIME).withId(4L).build();
+        entryP2e4.setPrescription(prescription2);
+
+        List<PrescriptionScheduleEntry> pse = List.of(
+                entryP1e1,
+                entryP1e2,
+                entryP2E3,
+                entryP2e4);
+
+
+        DailyEvaluation evaluation = aDailyEvaluation().withRecordDate(requestDate).with(patientBuilder).build();
 
         given(userService.findByLogin(patient.getUsername()))
                 .willReturn(patient);
@@ -182,20 +207,20 @@ class DoseServiceTests {
         given(dailyEvaluationRepository.save(evaluation))
                 .willReturn(evaluation);
         given(prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate()))
-                .willReturn(List.of(prescription));
+                .willReturn(List.of(prescription1));
         given(doseRepository.findByEvaluation(evaluation))
                 .willReturn(List.of());
-        given(prescriptionScheduleEntryRepository.findByPrescription(prescription))
+        given(prescriptionScheduleEntryRepository.findByPrescription(prescription1))
                 .willReturn(pse);
 
-        given(doseMapper.dailyMedicationDoseDataList(pse,new HashMap<>()))
+        given(doseMapper.dailyMedicationDoseDataList(pse, new HashMap<>()))
                 .willReturn(DoseMapper.DailyMedicationDoseDataList(pse, new HashMap<>()));
 
 
         // when - action or the behaviour that we are going test
         GetDailyDoseDataRequestResponse response = doseService.getDailyDoseData(request, patient.getUsername());
 
-
+        System.out.println(response);
         // then - verify the output
         assertThat(response).isNotNull();
         assertThat(response.getMedicationDoses().isEmpty()).isFalse();
