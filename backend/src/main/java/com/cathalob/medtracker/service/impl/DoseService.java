@@ -86,21 +86,11 @@ public class DoseService {
 
         List<Prescription> prescriptionsValidOnRequestDate = prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate());
 
-//  find all existing dose readings
-        Map<Long, Dose> dosesByPSE = doseRepository.findByEvaluation(dailyEvaluation)
-                .stream()
-                .collect(Collectors
-                        .toMap(dose -> dose.getPrescriptionScheduleEntry().getId(), Function.identity()));
-
-
-//    Fill in the gaps to create an empty dose reading for all the valid prescription entries for the current request date
-
         List<PrescriptionScheduleEntry> prescriptionScheduleEntries = prescriptionsValidOnRequestDate.stream()
                 .flatMap((prescription -> prescriptionScheduleEntryRepository.findByPrescription(prescription).stream())).toList();
 
-
         return GetDailyDoseDataRequestResponse.Success(LocalDate.now(),
-                doseMapper.dailyMedicationDoseDataList(prescriptionScheduleEntries, dosesByPSE));
+                doseMapper.dailyMedicationDoseDataList(prescriptionScheduleEntries, doseRepository.findByEvaluation(dailyEvaluation)));
     }
 
     public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) throws DailyDoseDataException {

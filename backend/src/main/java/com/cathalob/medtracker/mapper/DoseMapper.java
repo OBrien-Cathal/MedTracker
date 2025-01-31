@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DoseMapper {
 
@@ -69,12 +71,18 @@ public class DoseMapper {
     }
 
 
-    public List<DailyMedicationDoseData> dailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, Map<Long, Dose> doseByPseId) {
-        return DoseMapper.DailyMedicationDoseDataList(pseList, doseByPseId);
+    public List<DailyMedicationDoseData> dailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, List< Dose> doses) {
+        return DoseMapper.DailyMedicationDoseDataList(pseList, doses);
     }
 
 
-    public static List<DailyMedicationDoseData> DailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, Map<Long, Dose> doseByPseId) {
+    public static List<DailyMedicationDoseData> DailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList,
+                                                                            List< Dose> doses) {
+
+        Map<Long, Dose> doseByPseId = doses.stream()
+                .collect(Collectors
+                        .toMap(dose -> dose.getPrescriptionScheduleEntry().getId(), Function.identity()));
+
         Map<Prescription, List<DailyDoseData>> dailyDoseDataByPrescription = new HashMap<>();
 
         for (PrescriptionScheduleEntry pse : pseList) {

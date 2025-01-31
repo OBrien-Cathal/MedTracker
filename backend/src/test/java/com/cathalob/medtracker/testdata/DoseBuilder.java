@@ -1,11 +1,13 @@
 package com.cathalob.medtracker.testdata;
 
 import com.cathalob.medtracker.model.enums.USERROLE;
+import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.model.tracking.Dose;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class DoseBuilder {
     private Long id;
@@ -66,5 +68,18 @@ public class DoseBuilder {
         DailyEvaluation dailyEvaluation = dailyEvaluationBuilder.build();
         dailyEvaluation.setUserModel(prescriptionScheduleEntry.getPrescription().getPatient());
         return new Dose(id, dailyEvaluation, doseTime, prescriptionScheduleEntry, taken);
+    }
+
+
+    public static List<Dose> dosesFor(List<PrescriptionScheduleEntry> pse, DailyEvaluation dailyEvaluation) {
+        return pse.stream().map(prescriptionScheduleEntry -> {
+            Dose dose = aDose()
+                    .withId(prescriptionScheduleEntry.getId())
+                    .withDoseTime(LocalDateTime.now()).build();
+            dose.setPrescriptionScheduleEntry(prescriptionScheduleEntry);
+            dose.setEvaluation(dailyEvaluation);
+            return dose;
+
+        }).toList();
     }
 }
