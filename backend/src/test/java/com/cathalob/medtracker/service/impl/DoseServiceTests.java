@@ -169,10 +169,11 @@ class DoseServiceTests {
         given(dailyEvaluationRepository.save(evaluation))
                 .willReturn(evaluation);
         given(prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate()))
-                .willReturn(List.of(prescription1));
+                .willReturn(List.of(prescription1,prescription2));
         given(doseRepository.findByEvaluation(evaluation))
                 .willReturn(existingDoses);
-        given(prescriptionScheduleEntryRepository.findByPrescription(prescription1))
+
+        given(prescriptionScheduleEntryRepository.findByPrescriptions(List.of(prescription1, prescription2)))
                 .willReturn(pse);
 
         given(doseMapper.dailyMedicationDoseDataList(pse, existingDoses))
@@ -247,10 +248,10 @@ class DoseServiceTests {
         given(dailyEvaluationRepository.save(evaluation))
                 .willReturn(evaluation);
         given(prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate()))
-                .willReturn(List.of(prescription1));
+                .willReturn(List.of(prescription1,prescription2));
         given(doseRepository.findByEvaluation(evaluation))
                 .willReturn(List.of());
-        given(prescriptionScheduleEntryRepository.findByPrescription(prescription1))
+        given(prescriptionScheduleEntryRepository.findByPrescriptions(List.of(prescription1, prescription2)))
                 .willReturn(pse);
 
         given(doseMapper.dailyMedicationDoseDataList(pse, List.of()))

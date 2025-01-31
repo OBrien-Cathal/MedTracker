@@ -86,8 +86,7 @@ public class DoseService {
 
         List<Prescription> prescriptionsValidOnRequestDate = prescriptionsService.getPrescriptionsValidOnDate(patient, request.getDate());
 
-        List<PrescriptionScheduleEntry> prescriptionScheduleEntries = prescriptionsValidOnRequestDate.stream()
-                .flatMap((prescription -> prescriptionScheduleEntryRepository.findByPrescription(prescription).stream())).toList();
+        List<PrescriptionScheduleEntry> prescriptionScheduleEntries = prescriptionScheduleEntryRepository.findByPrescriptions(prescriptionsValidOnRequestDate);
 
         return GetDailyDoseDataRequestResponse.Success(LocalDate.now(),
                 doseMapper.dailyMedicationDoseDataList(prescriptionScheduleEntries, doseRepository.findByEvaluation(dailyEvaluation)));

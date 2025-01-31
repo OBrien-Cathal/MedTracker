@@ -10,6 +10,7 @@ public interface PrescriptionScheduleEntryRepository extends JpaRepository<Presc
 
 
     List<PrescriptionScheduleEntry> findByPrescription(Prescription prescription);
+    List<PrescriptionScheduleEntry> findByPrescriptions(List<Prescription> prescription);
 
 
 
