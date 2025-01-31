@@ -10,7 +10,9 @@ import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DoseMapper {
 
@@ -28,8 +30,8 @@ public class DoseMapper {
     }
 
 
-    public static DailyMedicationDoseData DailyDoseData(Prescription prescription,
-                                                        List<DailyDoseData> doses) {
+    public static DailyMedicationDoseData DailyMedicationDoseData(Prescription prescription,
+                                                                  List<DailyDoseData> doses) {
         return DailyMedicationDoseData.builder()
                 .doseMg(prescription.getDoseMg())
                 .medicationName(prescription.getMedication().getName())
@@ -66,12 +68,36 @@ public class DoseMapper {
     }
 
 
-    public DailyMedicationDoseData dailyDoseData(Prescription prescription,
-                                                 List<DailyDoseData> doses) {
-        return DoseMapper.DailyDoseData(prescription, doses);
+    public DailyMedicationDoseData dailyMedicationDoseData(Prescription prescription,
+                                                           List<DailyDoseData> doses) {
+        return DoseMapper.DailyMedicationDoseData(prescription, doses);
     }
 
-    public DailyDoseData DoseData2(PrescriptionScheduleEntry prescriptionScheduleEntry, Dose dose) {
+    public DailyDoseData doseData(PrescriptionScheduleEntry prescriptionScheduleEntry, Dose dose) {
         return DoseMapper.DoseData(prescriptionScheduleEntry, dose);
     }
+
+    public List<DailyMedicationDoseData> dailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, Map<Long, Dose> doseByPseId) {
+        return DoseMapper.DailyMedicationDoseDataList(pseList, doseByPseId);
+    }
+
+
+    public static List<DailyMedicationDoseData> DailyMedicationDoseDataList(List<PrescriptionScheduleEntry> pseList, Map<Long, Dose> doseByPseId) {
+        Map<Prescription, List<DailyDoseData>> dailyDoseDataByPrescription = new HashMap<>();
+
+        for (PrescriptionScheduleEntry pse : pseList) {
+
+            DailyDoseData newDailyDoseData = DoseData(pse, doseByPseId.get(pse.getId()));
+            if (dailyDoseDataByPrescription.containsKey(pse.getPrescription())) {
+                dailyDoseDataByPrescription.get(pse.getPrescription()).add(newDailyDoseData);
+            } else {
+                dailyDoseDataByPrescription.put(pse.getPrescription(), List.of(newDailyDoseData));
+            }
+        }
+
+        return dailyDoseDataByPrescription.entrySet().stream()
+                .map((e) -> DailyMedicationDoseData(e.getKey(), e.getValue()))
+                .toList();
+    }
+
 }

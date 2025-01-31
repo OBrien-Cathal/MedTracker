@@ -1,6 +1,5 @@
 package com.cathalob.medtracker.service.impl;
 
-import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.mapper.DoseMapper;
@@ -25,7 +24,6 @@ import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.service.UserService;
 import com.cathalob.medtracker.validate.model.DoseValidator;
-import com.cathalob.medtracker.validate.model.UserRoleValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -80,18 +78,9 @@ public class DoseService {
     }
 
     public GetDailyDoseDataRequestResponse getDailyDoseData(GetDailyDoseDataRequest request, String username) {
-
         UserModel patient = userService.findByLogin(username);
-        UserRoleValidator userRoleValidator = UserRoleValidator.PatientRole(patient.getRole());
-        try {
-            userRoleValidator.validate();
-        } catch (UserRoleValidationException e) {
-            if (userRoleValidator.validationFailed()) {
-                return GetDailyDoseDataRequestResponse.Failed(request.getDate(), userRoleValidator.getErrors());
-            }
-        }
 
-        DailyEvaluation dailyEvaluationPlaceholder = new DailyEvaluation(request.getDate(), patient);
+        DailyEvaluation dailyEvaluationPlaceholder = dailyEvaluationMapper.toDailyEvaluation(request.getDate(), patient);
         DailyEvaluation dailyEvaluation = dailyEvaluationRepository.findById(dailyEvaluationPlaceholder.getDailyEvaluationIdClass())
                 .orElse(dailyEvaluationRepository.save(dailyEvaluationPlaceholder));
 
@@ -104,29 +93,14 @@ public class DoseService {
                         .toMap(dose -> dose.getPrescriptionScheduleEntry().getId(), Function.identity()));
 
 
-        HashMap<Prescription, List<PrescriptionScheduleEntry>> prescriptionListHashMap = new HashMap<>();
 //    Fill in the gaps to create an empty dose reading for all the valid prescription entries for the current request date
 
-        prescriptionsValidOnRequestDate.forEach(
-                prescription -> {
-                    List<PrescriptionScheduleEntry> doseTemplates = prescriptionScheduleEntryRepository.findByPrescription(prescription);
-                    prescriptionListHashMap.put(prescription, doseTemplates);
-                }
-        );
+        List<PrescriptionScheduleEntry> prescriptionScheduleEntries = prescriptionsValidOnRequestDate.stream()
+                .flatMap((prescription -> prescriptionScheduleEntryRepository.findByPrescription(prescription).stream())).toList();
 
 
-        List<DailyMedicationDoseData> doseData = prescriptionListHashMap
-                .entrySet()
-                .stream()
-                .map(prescriptionListEntry ->
-                        doseMapper.dailyDoseData(prescriptionListEntry.getKey(),
-                                prescriptionListEntry.getValue().stream().map(prescriptionScheduleEntry ->
-                                                doseMapper.DoseData2(prescriptionScheduleEntry, dosesByPSE.get(prescriptionScheduleEntry.getId())))
-                                        .toList()))
-                .toList();
-
-
-        return GetDailyDoseDataRequestResponse.Success(LocalDate.now(), doseData);
+        return GetDailyDoseDataRequestResponse.Success(LocalDate.now(),
+                doseMapper.dailyMedicationDoseDataList(prescriptionScheduleEntries, dosesByPSE));
     }
 
     public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) throws DailyDoseDataException {
