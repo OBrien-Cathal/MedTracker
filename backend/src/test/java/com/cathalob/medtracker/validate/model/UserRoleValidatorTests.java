@@ -4,6 +4,7 @@ import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.USERROLE;
 import com.cathalob.medtracker.testdata.UserModelBuilder;
+import com.cathalob.medtracker.validate.ObjectPresenceValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,22 @@ class UserRoleValidatorTests {
         assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
         assertThat(validator.getErrors().get(0)).isEqualTo(UserRoleValidator.wrongRoleErrorMessage(user.getRole(), allowed));
+    }
+    @DisplayName("Exception: EMPTY Role is NOT valid patient or practitioner")
+    @Test
+    public void givenNoUSERROLE_whenALLOWED_PATIENT_PRACTITIONER_thenRaiseException() {
+        //given - precondition or setup
+        UserModel user = UserModelBuilder.aUserModel().withRole(USERROLE.ADMIN).build();
+        // when - action or the behaviour that we are going test
+
+        List<USERROLE> allowed = List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER);
+        UserRoleValidator validator = new UserRoleValidator(null, allowed);
+        Assertions.assertThrows(UserRoleValidationException.class, () -> validator.validate());
+        // then - verify the output
+        assertThat(validator.validationFailed()).isTrue();
+        assertThat(validator.getErrors()).hasSize(1);
+        assertThat(validator.getErrors().get(0))
+                .isEqualTo(ObjectPresenceValidator.ObjectMissingErrorMessage("UserRoleValidator"));
     }
 
     @DisplayName("PRACTITIONER role IS valid patient or practitioner")

@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.validate;
 
+import com.cathalob.medtracker.exception.validation.ObjectPresenceValidatorException;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -37,12 +38,21 @@ public abstract class Validator {
     }
 
     protected String objectToValidateName() {
-        return this.getClass().getName();
+        return this.getClass().getSimpleName();
     }
 
     protected void validationObjectIsPresent(Object object) {
         if (object == null) {
             addError(objectToValidateName() + "Object to validate is missing");
+            cannotContinueValidation();
+        }
+    }
+
+    protected void validateObjectPresence(Object objectToValidate) {
+        try {
+            ObjectPresenceValidator.aObjectPresenceValidator(objectToValidate, objectToValidateName()).validate();
+        } catch (ObjectPresenceValidatorException e) {
+            addErrors(e.getErrors());
             cannotContinueValidation();
         }
     }

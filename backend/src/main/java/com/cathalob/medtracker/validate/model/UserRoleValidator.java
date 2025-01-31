@@ -25,6 +25,7 @@ public class UserRoleValidator extends Validator {
 
     @Override
     protected void basicValidate() {
+        validateObjectPresence(userRole);
         validateAllowedRoles();
     }
 
@@ -37,12 +38,6 @@ public class UserRoleValidator extends Validator {
         return String.format("User has role '%s', where only '%s' are allowed.", current,
                 String.join(", ", allowed.stream().map(USERROLE::name).toList()));
     }
-
-    public static UserRoleValidator PatientRole(USERROLE role){
-        return new UserRoleValidator(role, List.of(USERROLE.PATIENT));
-    }
-
-
 
 
 }
