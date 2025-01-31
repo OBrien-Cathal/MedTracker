@@ -25,7 +25,7 @@ class UserRoleValidatorTests {
         List<USERROLE> allowed = List.of(USERROLE.PATIENT);
         UserRoleValidator validator = new UserRoleValidator(user.getRole(), allowed);
 
-        Assertions.assertThrows(UserRoleValidationException.class, () -> validator.validate());
+        Assertions.assertThrows(UserRoleValidationException.class, validator::validate);
         // then - verify the output
         assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
@@ -41,7 +41,7 @@ class UserRoleValidatorTests {
         List<USERROLE> allowed = List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER);
         UserRoleValidator validator = new UserRoleValidator(user.getRole(), allowed);
 
-        Assertions.assertThrows(UserRoleValidationException.class, () -> validator.validate());
+        Assertions.assertThrows(UserRoleValidationException.class, validator::validate);
 
         // then - verify the output
         assertThat(validator.validationFailed()).isTrue();
@@ -58,13 +58,13 @@ class UserRoleValidatorTests {
 
         List<USERROLE> allowed = List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER);
         UserRoleValidator validator = new UserRoleValidator(user.getRole(), allowed);
-        Assertions.assertThrows(UserRoleValidationException.class, () -> validator.validate());
+        Assertions.assertThrows(UserRoleValidationException.class, validator::validate);
         // then - verify the output
         assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
         assertThat(validator.getErrors().get(0)).isEqualTo(UserRoleValidator.wrongRoleErrorMessage(user.getRole(), allowed));
     }
-    @DisplayName("Exception: EMPTY Role is NOT valid patient or practitioner")
+    @DisplayName("Exception: EMPTY Role triggers missing object error")
     @Test
     public void givenNoUSERROLE_whenALLOWED_PATIENT_PRACTITIONER_thenRaiseException() {
         //given - precondition or setup
@@ -73,7 +73,7 @@ class UserRoleValidatorTests {
 
         List<USERROLE> allowed = List.of(USERROLE.PATIENT, USERROLE.PRACTITIONER);
         UserRoleValidator validator = new UserRoleValidator(null, allowed);
-        Assertions.assertThrows(UserRoleValidationException.class, () -> validator.validate());
+        Assertions.assertThrows(UserRoleValidationException.class, validator::validate);
         // then - verify the output
         assertThat(validator.validationFailed()).isTrue();
         assertThat(validator.getErrors()).hasSize(1);
