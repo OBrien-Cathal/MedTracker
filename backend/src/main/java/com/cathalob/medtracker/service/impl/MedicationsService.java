@@ -33,10 +33,7 @@ public class MedicationsService {
 
     private void validateMedication(Medication medication) {
         List<Medication> existing = medicationRepository.findByName(medication.getName());
-        MedicationValidator validator = MedicationValidator.aMedicationValidator();
-        validator.validateMedication(medication, existing);
 
-        if (validator.validationFailed())
-            throw new MedicationValidationException(validator.getErrors());
+        MedicationValidator.AMedicationValidator(medication, existing.isEmpty() ? null : existing.get(0)).validate();
     }
 }
