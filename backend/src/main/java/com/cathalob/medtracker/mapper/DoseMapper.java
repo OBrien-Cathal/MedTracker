@@ -9,6 +9,7 @@ import com.cathalob.medtracker.payload.data.DailyMedicationDoseData;
 import com.cathalob.medtracker.payload.request.patient.AddDailyDoseDataRequest;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class DoseMapper {
@@ -19,12 +20,13 @@ public class DoseMapper {
                             PrescriptionScheduleEntry prescriptionScheduleEntry) {
 
         Dose dose = new Dose();
-        dose.setDoseTime(LocalDateTime.now());
+        dose.setDoseTime(LocalDateTime.of(addDailyDoseDataRequest.getDate(), LocalTime.now()));
         dose.setPrescriptionScheduleEntry(prescriptionScheduleEntry);
         dose.setEvaluation(dailyEvaluation);
         dose.setTaken(addDailyDoseDataRequest.getDailyDoseData().isTaken());
         return dose;
     }
+
 
     public static DailyMedicationDoseData DailyDoseData(Prescription prescription,
                                                         List<DailyDoseData> doses) {
@@ -57,4 +59,19 @@ public class DoseMapper {
 
     }
 
+    public Dose dose(AddDailyDoseDataRequest addDailyDoseDataRequest,
+                     DailyEvaluation dailyEvaluation,
+                     PrescriptionScheduleEntry prescriptionScheduleEntry) {
+        return DoseMapper.Dose(addDailyDoseDataRequest, dailyEvaluation, prescriptionScheduleEntry);
+    }
+
+
+    public DailyMedicationDoseData dailyDoseData(Prescription prescription,
+                                                 List<DailyDoseData> doses) {
+        return DoseMapper.DailyDoseData(prescription, doses);
+    }
+
+    public DailyDoseData DoseData2(PrescriptionScheduleEntry prescriptionScheduleEntry, Dose dose) {
+        return DoseMapper.DoseData(prescriptionScheduleEntry, dose);
+    }
 }

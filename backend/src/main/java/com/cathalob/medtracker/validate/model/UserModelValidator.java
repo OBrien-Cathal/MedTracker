@@ -9,7 +9,7 @@ import com.cathalob.medtracker.validate.Validator;
 import java.util.List;
 
 public class UserModelValidator extends Validator {
-    private final UserModel userModel;
+    protected final UserModel userModel;
 
     public UserModelValidator(UserModel userModel) {
         this.userModel = userModel;
@@ -19,6 +19,9 @@ public class UserModelValidator extends Validator {
         if (objectIsAbsent(userModel)) {
             addError(UserModelValidator.UserNotExists(userRoles));
         }
+    }
+
+    protected void validateRole() {
     }
 
     public void validatePatient() {
@@ -38,20 +41,30 @@ public class UserModelValidator extends Validator {
         validateBasic(userRoles);
         if (validationFailed()) return;
         try {
-            userRoleValidator().is(userRoles);
+            userRoleValidator(userRoles).validate();
         } catch (UserRoleValidationException e) {
             addErrors(e.getErrors());
         }
     }
 
-    private UserRoleValidator userRoleValidator() {
-        return new UserRoleValidator(userModel.getRole());
+    private UserRoleValidator userRoleValidator(List<USERROLE> allowedRoles) {
+        return new UserRoleValidator(userModel.getRole(), allowedRoles);
     }
+
+
+//    Static access
 
     public static UserModelValidator ReferencedUserModelValidator(UserModel userModel) {
         return new UserModelValidator(userModel);
     }
 
+    public static PractitionerUserModelValidator PractitionerUserModelValidator(UserModel userModel) {
+        return new PractitionerUserModelValidator(userModel);
+    }
+
+    public static PatientUserModelValidator PatientUserModelValidator(UserModel userModel) {
+        return new PatientUserModelValidator(userModel);
+    }
 
 
 // Error Messages
@@ -64,4 +77,16 @@ public class UserModelValidator extends Validator {
         return String.join(",", expectedRole.stream().map(USERROLE::name).toList()) + " User does not exist";
     }
 
+//    Overrides
+
+    @Override
+    protected void basicValidate() {
+        validationObjectIsPresent(userModel);
+        validateRole();
+    }
+
+    @Override
+    protected void raiseValidationException() {
+        throw new UserRoleValidationException(getErrors());
+    }
 }

@@ -1,10 +1,12 @@
 package com.cathalob.medtracker.service.impl;
 
+import com.cathalob.medtracker.exception.validation.UserRoleValidationException;
 import com.cathalob.medtracker.exception.validation.dose.DailyDoseDataException;
 import com.cathalob.medtracker.mapper.DailyEvaluationMapper;
 import com.cathalob.medtracker.mapper.DoseMapper;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.enums.DAYSTAGE;
+
 import com.cathalob.medtracker.model.prescription.Medication;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
@@ -22,15 +24,12 @@ import com.cathalob.medtracker.repository.DoseRepository;
 import com.cathalob.medtracker.repository.PatientRegistrationRepository;
 import com.cathalob.medtracker.repository.PrescriptionScheduleEntryRepository;
 import com.cathalob.medtracker.service.UserService;
-import com.cathalob.medtracker.validate.Validator;
 import com.cathalob.medtracker.validate.model.DoseValidator;
 import com.cathalob.medtracker.validate.model.UserRoleValidator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.DispatcherServlet;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
@@ -46,11 +45,14 @@ public class DoseService {
     private final PatientRegistrationRepository patientRegistrationRepository;
     private final DailyEvaluationRepository dailyEvaluationRepository;
     private final PrescriptionScheduleEntryRepository prescriptionScheduleEntryRepository;
-    private final DispatcherServlet dispatcherServlet;
+    private final DoseMapper doseMapper;
+    private final DailyEvaluationMapper dailyEvaluationMapper;
+
 
     public List<Dose> getDoses(UserModel userModel) {
         return doseRepository.findDosesForUserId(userModel.getId());
     }
+
 
     public void saveDoses(List<Dose> newDoses) {
         doseRepository.saveAll(newDoses);
@@ -80,10 +82,13 @@ public class DoseService {
     public GetDailyDoseDataRequestResponse getDailyDoseData(GetDailyDoseDataRequest request, String username) {
 
         UserModel patient = userService.findByLogin(username);
-        UserRoleValidator userRoleValidator = new UserRoleValidator(patient.getRole());
-        userRoleValidator.validateIsPatient();
-        if (userRoleValidator.validationFailed()) {
-            return GetDailyDoseDataRequestResponse.Failed(request.getDate(), userRoleValidator.getErrors());
+        UserRoleValidator userRoleValidator = UserRoleValidator.PatientRole(patient.getRole());
+        try {
+            userRoleValidator.validate();
+        } catch (UserRoleValidationException e) {
+            if (userRoleValidator.validationFailed()) {
+                return GetDailyDoseDataRequestResponse.Failed(request.getDate(), userRoleValidator.getErrors());
+            }
         }
 
         DailyEvaluation dailyEvaluationPlaceholder = new DailyEvaluation(request.getDate(), patient);
@@ -114,9 +119,9 @@ public class DoseService {
                 .entrySet()
                 .stream()
                 .map(prescriptionListEntry ->
-                        DoseMapper.DailyDoseData(prescriptionListEntry.getKey(),
+                        doseMapper.dailyDoseData(prescriptionListEntry.getKey(),
                                 prescriptionListEntry.getValue().stream().map(prescriptionScheduleEntry ->
-                                                DoseMapper.DoseData(prescriptionScheduleEntry, dosesByPSE.get(prescriptionScheduleEntry.getId())))
+                                                doseMapper.DoseData2(prescriptionScheduleEntry, dosesByPSE.get(prescriptionScheduleEntry.getId())))
                                         .toList()))
                 .toList();
 
@@ -124,10 +129,10 @@ public class DoseService {
         return GetDailyDoseDataRequestResponse.Success(LocalDate.now(), doseData);
     }
 
-    public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) throws DailyDoseDataException{
+    public AddDailyDoseDataRequestResponse addDailyDoseData(AddDailyDoseDataRequest request, String username) throws DailyDoseDataException {
         UserModel patient = userService.findByLogin(username);
 
-        DailyEvaluation dailyEvaluationPlaceholder = DailyEvaluationMapper.ToDailyEvaluation(request.getDate(), patient);
+        DailyEvaluation dailyEvaluationPlaceholder = dailyEvaluationMapper.toDailyEvaluation(request.getDate(), patient);
         DailyEvaluation dailyEvaluation = dailyEvaluationRepository.findById(dailyEvaluationPlaceholder.getDailyEvaluationIdClass())
                 .orElse(dailyEvaluationRepository.save(dailyEvaluationPlaceholder));
 
@@ -135,23 +140,18 @@ public class DoseService {
 
         List<Dose> byId = doseRepository.findByPrescriptionScheduleEntryAndEvaluation(prescriptionScheduleEntry, dailyEvaluation);
 
-        Dose doseToSave;
+        Dose addOrUpdateDose = doseMapper.dose(request, dailyEvaluation, prescriptionScheduleEntry);
+
         if (byId.isEmpty()) {
-            doseToSave = DoseMapper.Dose(request, dailyEvaluation, prescriptionScheduleEntry);
+            DoseValidator.AddDoseValidator(addOrUpdateDose).validate();
         } else {
             Dose foundDose = byId.get(0);
-            foundDose.setTaken(request.getDailyDoseData().isTaken());
-            foundDose.setDoseTime(LocalDateTime.now());
-            doseToSave = foundDose;
+            addOrUpdateDose.setId(foundDose.getId());
+            DoseValidator.UpdateDoseValidator(addOrUpdateDose, foundDose).validate();
         }
+        Dose saved = doseRepository.save(addOrUpdateDose);
 
-        DoseValidator validator = DoseValidator.aDoseValidator();
-        validator.validateDoseEntry(doseToSave);
-        if (validator.validationFailed()) throw new DailyDoseDataException(validator.getErrors());
-
-        doseRepository.save(doseToSave);
-
-        return AddDailyDoseDataRequestResponse.Success(LocalDate.now(), doseToSave.getId());
+        return AddDailyDoseDataRequestResponse.Success(LocalDate.now(), saved.getId());
     }
 
     private TimeSeriesGraphDataResponse getDoseGraphDataResponse(UserModel patient) {

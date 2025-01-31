@@ -1,21 +1,38 @@
 package com.cathalob.medtracker.validate.model;
 
+import com.cathalob.medtracker.exception.validation.DailyEvaluationValidationException;
+import com.cathalob.medtracker.exception.validation.UserModelValidationException;
 import com.cathalob.medtracker.model.UserModel;
 import com.cathalob.medtracker.model.tracking.DailyEvaluation;
 import com.cathalob.medtracker.validate.Validator;
 
 public class DailyEvaluationValidator extends Validator {
+    private final DailyEvaluation dailyEvaluation;
 
-    public DailyEvaluationValidator() {}
+    public DailyEvaluationValidator(DailyEvaluation dailyEvaluation) {
+        this.dailyEvaluation = dailyEvaluation;
+    }
 
-    public void validate(DailyEvaluation dailyEvaluation) {
+    @Override
+    protected void basicValidate() {
         validatePatient(dailyEvaluation.getUserModel());
+    }
 
+    @Override
+    protected void raiseValidationException() {
+        throw new DailyEvaluationValidationException(getErrors());
     }
 
     public void validatePatient(UserModel patient) {
-        UserModelValidator userModelValidator = UserModelValidator.ReferencedUserModelValidator(patient);
-        userModelValidator.validatePatient();
-        validateUsingSubValidator(userModelValidator);
+        try {
+            UserModelValidator.PatientUserModelValidator(patient).validate();
+        } catch (UserModelValidationException e) {
+            addErrors(e.getErrors());
+        }
     }
+
+    public static DailyEvaluationValidator aDailyEvaluationValidator(DailyEvaluation dailyEvaluation) {
+        return new DailyEvaluationValidator(dailyEvaluation);
+    }
+
 }

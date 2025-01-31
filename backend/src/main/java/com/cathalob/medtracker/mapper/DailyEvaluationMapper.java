@@ -10,4 +10,8 @@ public class DailyEvaluationMapper {
     public static DailyEvaluation ToDailyEvaluation(LocalDate date, UserModel userModel){
         return new DailyEvaluation(date, userModel);
     }
+
+    public  DailyEvaluation toDailyEvaluation(LocalDate date, UserModel userModel){
+        return  DailyEvaluationMapper.ToDailyEvaluation(date, userModel);
+    }
 }

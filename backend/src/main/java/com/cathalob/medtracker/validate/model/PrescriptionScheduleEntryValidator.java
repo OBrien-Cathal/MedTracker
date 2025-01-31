@@ -1,5 +1,6 @@
 package com.cathalob.medtracker.validate.model;
 
+import com.cathalob.medtracker.exception.validation.PrescriptionScheduleEntryValidatorException;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.validate.Validator;
@@ -7,10 +8,25 @@ import com.cathalob.medtracker.validate.Validator;
 
 public class PrescriptionScheduleEntryValidator extends Validator {
 
-    public PrescriptionScheduleEntryValidator() {
+    private final PrescriptionScheduleEntry prescriptionScheduleEntry;
+    private final PrescriptionScheduleEntry existingPrescriptionScheduleEntry;
+
+    public PrescriptionScheduleEntryValidator(PrescriptionScheduleEntry prescriptionScheduleEntry, PrescriptionScheduleEntry existingPrescriptionScheduleEntry) {
+        this.prescriptionScheduleEntry = prescriptionScheduleEntry;
+        this.existingPrescriptionScheduleEntry = existingPrescriptionScheduleEntry;
     }
 
-    public void validatePrescriptionScheduleEntry(PrescriptionScheduleEntry prescriptionScheduleEntry) {
+    @Override
+    protected void basicValidate() {
+        validatePrescriptionScheduleEntry();
+    }
+
+    @Override
+    protected void raiseValidationException() {
+        throw new PrescriptionScheduleEntryValidatorException(getErrors());
+    }
+
+    public void validatePrescriptionScheduleEntry() {
         if (objectIsAbsent(prescriptionScheduleEntry)) {
             addError("PrescriptionScheduleEntry does not exist");
             return;
@@ -19,14 +35,12 @@ public class PrescriptionScheduleEntryValidator extends Validator {
     }
 
     public void validatePrescription(Prescription prescription) {
-        PrescriptionValidator prescriptionValidator = PrescriptionValidator.aPrescriptionValidator();
-        prescriptionValidator.validatePrescription(prescription);
-        validateUsingSubValidator(prescriptionValidator);
+        PrescriptionValidator.aPrescriptionValidator(prescription).validate();
 
     }
 
-    public static PrescriptionScheduleEntryValidator aPrescriptionScheduleEntryValidator() {
-        return new PrescriptionScheduleEntryValidator();
+    public static PrescriptionScheduleEntryValidator aPrescriptionScheduleEntryValidator(PrescriptionScheduleEntry prescriptionScheduleEntry) {
+        return new PrescriptionScheduleEntryValidator(prescriptionScheduleEntry, null);
     }
 
 }

@@ -11,7 +11,7 @@ public class ValidatorException extends RuntimeException {
     private final List<String> errors;
 
     public ValidatorException(List<String> errors) {
-        super("Validation Failed");
+        super("Validation Failed: \n" + String.join("\n - ", errors));
         this.errors = errors;
     }
 }

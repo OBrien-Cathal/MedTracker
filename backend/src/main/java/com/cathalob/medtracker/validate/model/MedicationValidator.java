@@ -23,4 +23,14 @@ public class MedicationValidator extends Validator {
     public static MedicationValidator aMedicationValidator(){
         return new MedicationValidator();
     }
+
+    @Override
+    protected void basicValidate() {
+
+    }
+
+    @Override
+    protected void raiseValidationException() {
+
+    }
 }

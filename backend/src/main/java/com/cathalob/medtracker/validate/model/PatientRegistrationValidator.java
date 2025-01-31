@@ -32,4 +32,13 @@ public class PatientRegistrationValidator extends Validator {
         return new PatientRegistrationValidator();
     }
 
+    @Override
+    protected void basicValidate() {
+
+    }
+
+    @Override
+    protected void raiseValidationException() {
+
+    }
 }
