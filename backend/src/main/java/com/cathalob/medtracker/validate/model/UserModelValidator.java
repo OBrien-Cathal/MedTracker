@@ -56,7 +56,7 @@ public class UserModelValidator extends Validator {
 
     @Override
     protected void basicValidate() {
-        validationObjectIsPresent(userModel);
+        validateObjectPresence(userModel);
         validateRole();
     }
 

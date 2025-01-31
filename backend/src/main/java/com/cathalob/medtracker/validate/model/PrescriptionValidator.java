@@ -25,9 +25,7 @@ public class PrescriptionValidator extends Validator {
     }
 
     public void validatePrescription() {
-        if (objectIsAbsent(prescription)) {
-            addError("Prescription does not exist");
-        }
+        validateObjectPresence(prescription);
     }
 
     public static PrescriptionValidator aPrescriptionValidator(Prescription prescription) {

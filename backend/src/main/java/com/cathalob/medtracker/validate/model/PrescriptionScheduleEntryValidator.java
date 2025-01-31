@@ -1,6 +1,7 @@
 package com.cathalob.medtracker.validate.model;
 
 import com.cathalob.medtracker.exception.validation.PrescriptionScheduleEntryValidatorException;
+import com.cathalob.medtracker.exception.validation.PrescriptionValidatorException;
 import com.cathalob.medtracker.model.prescription.Prescription;
 import com.cathalob.medtracker.model.prescription.PrescriptionScheduleEntry;
 import com.cathalob.medtracker.validate.Validator;
@@ -27,15 +28,16 @@ public class PrescriptionScheduleEntryValidator extends Validator {
     }
 
     public void validatePrescriptionScheduleEntry() {
-        if (objectIsAbsent(prescriptionScheduleEntry)) {
-            addError("PrescriptionScheduleEntry does not exist");
-            return;
-        }
+        validateObjectPresence(prescriptionScheduleEntry);
         validatePrescription(prescriptionScheduleEntry.getPrescription());
     }
 
     public void validatePrescription(Prescription prescription) {
-        PrescriptionValidator.aPrescriptionValidator(prescription).validate();
+        try {
+            PrescriptionValidator.aPrescriptionValidator(prescription).validate();
+        } catch (PrescriptionValidatorException e) {
+            addErrors(e.getErrors());
+        }
 
     }
 
